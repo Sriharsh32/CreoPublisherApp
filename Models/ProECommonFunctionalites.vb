@@ -1,14 +1,23 @@
 ﻿Imports pfcls
 Imports System.IO
+Imports System.Windows
 
 Public Class ProECommonFunctionalites
-    Public Sub ExportAllDrawingsAsPDF(inputFiles As List(Of String), outputFolder As String)
+
+
+    'for disable of ucs 
+    Public Sub setConfigOption(configName As String, configValue As String)
+        Dim creoSession As IpfcBaseSession = CreoSessionManager.Instance.Session
+        creoSession.SetConfigOption(configName, configValue)
+
+    End Sub
+    Public Sub ExportAllDrawingsAsPDF(fileItems As List(Of FileItemModel), outputFolder As String)
         Dim session = CreoSessionManager.Instance.Session
 
-        For Each drwPath In inputFiles
+        For Each item In fileItems.Where(Function(f) f.IsSelected)
             Try
-                Dim name = Path.GetFileNameWithoutExtension(drwPath)
-                Dim dir = Path.GetDirectoryName(drwPath)
+                Dim name = Path.GetFileNameWithoutExtension(item.FullPath)
+                Dim dir = Path.GetDirectoryName(item.FullPath)
 
                 session.ChangeDirectory(dir)
 
@@ -16,17 +25,19 @@ Public Class ProECommonFunctionalites
                 Dim model As IpfcModel = session.RetrieveModel(desc)
 
                 If model Is Nothing Then
-                    MessageBox.Show($"Failed to retrieve: {drwPath}")
+                    item.Status = "Failed to retrieve"
                     Continue For
                 End If
 
                 Dim pdfInstr As IpfcPDFExportInstructions = (New CCpfcPDFExportInstructions()).Create()
                 pdfInstr.FilePath = Path.Combine(outputFolder, name & ".pdf")
 
-                model.Display() ' Required to avoid XToolkitNotDisplayed
+                model.Display()
                 model.Export(pdfInstr.FilePath, pdfInstr)
+
+                item.Status = "Success"
             Catch ex As Exception
-                MessageBox.Show($"Error exporting {drwPath}:" & vbCrLf & ex.Message)
+                item.Status = "Error: " & ex.Message
             End Try
         Next
     End Sub

@@ -1,110 +1,237 @@
-﻿Imports System.IO
+﻿Imports System.Collections.ObjectModel
 Imports System.ComponentModel
 Imports System.Runtime.CompilerServices
-Imports System.Text
 Imports System.Windows.Input
-Imports Microsoft.Win32
 Imports Ookii.Dialogs.Wpf
+Imports Microsoft.Win32
+Imports System.IO
 Imports System.Linq
-Imports Models ' Project-specific namespace
 
-Public Class MainViewModel
-    Implements INotifyPropertyChanged
+Namespace CreoPublisherApp.ViewModels
 
-    Private _inputFiles As New List(Of String)
-    Private _outputPath As String
-    Private _log As New StringBuilder
+    Public Class MainViewModel
+        Implements INotifyPropertyChanged
 
-    Public Property OutputPath As String
-        Get
-            Return _outputPath
-        End Get
-        Set(value As String)
-            _outputPath = value
-            OnPropertyChanged()
-        End Set
-    End Property
+        Private _inputPath As String = ""
+        Private _outputPath As String = ""
+        Private _files As ObservableCollection(Of FileItemModel) = New ObservableCollection(Of FileItemModel)()
+        Private _log As String = ""
+        Private _filesCountText As String = "No files selected."
 
-    Public ReadOnly Property LogText As String
-        Get
-            Return _log.ToString()
-        End Get
-    End Property
+        Private _openProe As New OpenProeObjectClass()
+        Private _proeCommonFuncs As New ProECommonFunctionalites()
 
-    Public ReadOnly Property BrowseFilesCommand As ICommand
-    Public ReadOnly Property BrowseFolderCommand As ICommand
-    Public ReadOnly Property BrowseOutputFolderCommand As ICommand
-    Public ReadOnly Property PublishCommand As ICommand
+        Public Property InputPath As String
+            Get
+                Return _inputPath
+            End Get
+            Set(value As String)
+                If _inputPath <> value Then
+                    _inputPath = value
+                    OnPropertyChanged()
+                End If
+            End Set
+        End Property
 
-    Public Sub New()
-        BrowseFilesCommand = New RelayCommand(AddressOf BrowseFiles)
-        BrowseFolderCommand = New RelayCommand(AddressOf BrowseFolder)
-        BrowseOutputFolderCommand = New RelayCommand(AddressOf BrowseOutputFolder)
-        PublishCommand = New RelayCommand(AddressOf Publish)
-    End Sub
+        Public Property OutputPath As String
+            Get
+                Return _outputPath
+            End Get
+            Set(value As String)
+                If _outputPath <> value Then
+                    _outputPath = value
+                    OnPropertyChanged()
+                End If
+            End Set
+        End Property
 
-    Private Sub BrowseFiles()
-        Dim dlg = New OpenFileDialog With {
-            .Multiselect = True,
-            .Filter = "Creo Drawing Files (*.drw)|*.drw"
-        }
-        If dlg.ShowDialog() Then
-            _inputFiles = dlg.FileNames.ToList()
-            AppendLog($"Selected {_inputFiles.Count} files.")
-        End If
-    End Sub
+        Public ReadOnly Property Files As ObservableCollection(Of FileItemModel)
+            Get
+                Return _files
+            End Get
+        End Property
 
-    Private Sub BrowseFolder()
-        Dim dlg = New VistaFolderBrowserDialog()
-        If dlg.ShowDialog() Then
-            _inputFiles = Directory.GetFiles(dlg.SelectedPath, "*.drw").ToList()
-            AppendLog($"Loaded {_inputFiles.Count} files from folder: {dlg.SelectedPath}")
-        End If
-    End Sub
+        Public Property Log As String
+            Get
+                Return _log
+            End Get
+            Set(value As String)
+                If _log <> value Then
+                    _log = value
+                    OnPropertyChanged()
+                End If
+            End Set
+        End Property
 
-    Private Sub BrowseOutputFolder()
-        Dim dlg = New VistaFolderBrowserDialog()
-        If dlg.ShowDialog() Then
-            OutputPath = dlg.SelectedPath
-        End If
-    End Sub
+        Public ReadOnly Property FilesCountText As String
+            Get
+                Return _filesCountText
+            End Get
+        End Property
 
-    Private Sub Publish()
-        If _inputFiles.Count = 0 OrElse String.IsNullOrEmpty(OutputPath) Then
-            AppendLog("Select input files and output folder first.")
-            Return
-        End If
+        Public Property BrowseFolderCommand As ICommand
+        Public Property BrowseFilesCommand As ICommand
+        Public Property BrowseOutputFolderCommand As ICommand
+        Public Property SelectAllCommand As ICommand
+        Public Property DeselectAllCommand As ICommand
+        Public Property InvertSelectionCommand As ICommand
+        Public Property PublishCommand As ICommand
 
-        AppendLog("Starting Creo session...")
+        Public Sub New()
+            BrowseFolderCommand = New RelayCommand(AddressOf BrowseFolder)
+            BrowseFilesCommand = New RelayCommand(AddressOf BrowseFiles)
+            BrowseOutputFolderCommand = New RelayCommand(AddressOf BrowseOutputFolder)
+            SelectAllCommand = New RelayCommand(AddressOf SelectAllFiles)
+            DeselectAllCommand = New RelayCommand(AddressOf DeselectAllFiles)
+            InvertSelectionCommand = New RelayCommand(AddressOf InvertSelectionFiles)
+            PublishCommand = New RelayCommand(AddressOf PublishFiles)
+        End Sub
 
-        Dim opener As New OpenProeObjectClass()
-        ' Use the folder path of the first input file as working directory
-        Dim workingDir = Path.GetDirectoryName(_inputFiles(0))
+        Private Sub BrowseFolder()
+            Dim dialog As New VistaFolderBrowserDialog()
+            If dialog.ShowDialog() = True Then
+                InputPath = dialog.SelectedPath
+                LoadFilesFromFolder(InputPath)
+            End If
+        End Sub
 
-        If Not opener.RunProe(workingDir) Then
-            AppendLog("Failed to launch Creo.")
-            Return
-        End If
+        Private Sub BrowseFiles()
+            Dim dlg As New OpenFileDialog()
+            dlg.Multiselect = True
+            dlg.Filter = "Creo Drawing Files (*.drw)|*.drw|All files (*.*)|*.*"
 
-        CreoSessionManager.Instance.InitializeCreoSession()
-        AppendLog("Creo session ready.")
+            If dlg.ShowDialog() = True Then
+                _files.Clear()
+                For Each filePath In dlg.FileNames
+                    _files.Add(New FileItemModel(filePath))
+                Next
+                InputPath = "Multiple files selected"
+                UpdateFilesCountText()
+            End If
+        End Sub
 
-        Dim util = New ProECommonFunctionalites()
-        util.ExportAllDrawingsAsPDF(_inputFiles, OutputPath) ' Passing file list, see next fix
+        Private Sub BrowseOutputFolder()
+            Dim dialog As New VistaFolderBrowserDialog()
+            If dialog.ShowDialog() = True Then
+                OutputPath = dialog.SelectedPath
+            End If
+        End Sub
 
-        AppendLog("Publishing complete.")
+        Private Sub LoadFilesFromFolder(folderPath As String)
+            Try
+                _files.Clear()
+                Dim filesInFolder = Directory.GetFiles(folderPath, "*.drw")
+                For Each filePath In filesInFolder
+                    _files.Add(New FileItemModel(filePath))
+                Next
+                UpdateFilesCountText()
+            Catch ex As Exception
+                Log &= $"Error loading files from folder: {ex.Message}{Environment.NewLine}"
+            End Try
+        End Sub
 
-        opener.KillCreO()
-        AppendLog("Creo closed.")
-    End Sub
+        Private Sub UpdateFilesCountText()
+            _filesCountText = $"{_files.Count} file(s) selected"
+            OnPropertyChanged(NameOf(FilesCountText))
+        End Sub
 
-    Private Sub AppendLog(message As String)
-        _log.AppendLine($"{DateTime.Now:HH:mm:ss} - {message}")
-        OnPropertyChanged(NameOf(LogText))
-    End Sub
+        Private Sub SelectAllFiles()
+            For Each f In _files
+                f.IsSelected = True
+            Next
+            OnPropertyChanged(NameOf(Files))
+        End Sub
 
-    Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
-    Protected Sub OnPropertyChanged(<CallerMemberName> Optional name As String = Nothing)
-        RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(name))
-    End Sub
-End Class
+        Private Sub DeselectAllFiles()
+            For Each f In _files
+                f.IsSelected = False
+            Next
+            OnPropertyChanged(NameOf(Files))
+        End Sub
+
+        Private Sub InvertSelectionFiles()
+            For Each f In _files
+                f.IsSelected = Not f.IsSelected
+            Next
+            OnPropertyChanged(NameOf(Files))
+        End Sub
+
+        Private Sub PublishFiles()
+            Dim selectedFiles = _files.Where(Function(f) f.IsSelected).ToList()
+            If selectedFiles.Count = 0 Then
+                Log &= "No files selected for publishing." & Environment.NewLine
+                Return
+            End If
+            If String.IsNullOrEmpty(OutputPath) Then
+                Log &= "Please select an output folder before publishing." & Environment.NewLine
+                Return
+            End If
+
+            Log &= $"Starting Creo launch and export for {selectedFiles.Count} files..." & Environment.NewLine
+
+            ' Launch Creo session
+            Dim workingDir = Environment.CurrentDirectory
+            Dim launchSuccess = _openProe.RunProe(workingDir)
+            If Not launchSuccess Then
+                Log &= "Failed to launch Creo." & Environment.NewLine
+                Return
+            End If
+
+            ' Initialize Creo session
+            CreoSessionManager.Instance.InitializeCreoSession()
+            If CreoSessionManager.Instance.Session Is Nothing Then
+                Log &= "Failed to initialize Creo session." & Environment.NewLine
+                Return
+            End If
+
+
+            _proeCommonFuncs.setConfigOption("display_planes", "no")
+            _proeCommonFuncs.setConfigOption("display_axes", "no")
+            _proeCommonFuncs.setConfigOption("display_coord_sys", "no")
+            ' Export selected drawings as PDF
+            _proeCommonFuncs.ExportAllDrawingsAsPDF(selectedFiles, OutputPath)
+
+            ' Update UI statuses and log after export
+            For Each file In selectedFiles
+                OnPropertyChanged(NameOf(Files))
+            Next
+            Log &= "Publishing complete." & Environment.NewLine
+
+            ' Optional: close Creo session
+            '_openProe.KillCreO()
+        End Sub
+
+        Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
+        Protected Sub OnPropertyChanged(<CallerMemberName> Optional propertyName As String = Nothing)
+            RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
+        End Sub
+
+    End Class
+
+    Public Class RelayCommand
+        Implements ICommand
+
+        Private ReadOnly _execute As Action
+        Private ReadOnly _canExecute As Func(Of Boolean)
+
+        Public Sub New(execute As Action, Optional canExecute As Func(Of Boolean) = Nothing)
+            _execute = execute
+            _canExecute = canExecute
+        End Sub
+
+        Public Function CanExecute(parameter As Object) As Boolean Implements ICommand.CanExecute
+            Return If(_canExecute Is Nothing, True, _canExecute())
+        End Function
+
+        Public Event CanExecuteChanged As EventHandler Implements ICommand.CanExecuteChanged
+
+        Public Sub Execute(parameter As Object) Implements ICommand.Execute
+            _execute()
+        End Sub
+
+        Public Sub RaiseCanExecuteChanged()
+            RaiseEvent CanExecuteChanged(Me, EventArgs.Empty)
+        End Sub
+    End Class
+
+End Namespace

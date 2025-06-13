@@ -1,4 +1,6 @@
-﻿Namespace CreoPublisherApp
+﻿Imports CreoPublisherApp.CreoPublisherApp.ViewModels
+
+Namespace CreoPublisherApp
 
     Partial Public Class MainWindow
         Inherits Window
@@ -7,7 +9,6 @@
             InitializeComponent()
             DataContext = New MainViewModel()
         End Sub
-
     End Class
 
 End Namespace
