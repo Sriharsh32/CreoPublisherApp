@@ -5,48 +5,41 @@
         Title="Creo PDF Batch Publisher" Height="650" Width="900"
         WindowStartupLocation="CenterScreen">
 
-    <Grid Margin="15" >
+    <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Input Folder -->
             <RowDefinition Height="Auto"/>
-            <!-- Browse Files -->
             <RowDefinition Height="Auto"/>
-            <!-- Output Folder -->
             <RowDefinition Height="Auto"/>
-            <!-- Date Filters -->
             <RowDefinition Height="Auto"/>
-            <!-- Invert Selection Button -->
             <RowDefinition Height="*"/>
-            <!-- DataGrid -->
             <RowDefinition Height="Auto"/>
-            <!-- Select/Deselect Toggle Button -->
-            <RowDefinition Height="Auto"/>
-            <!-- Publish Button -->
             <RowDefinition Height="120"/>
-            <!-- Log -->
         </Grid.RowDefinitions>
 
         <!-- Input Folder -->
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8" VerticalAlignment="Center">
-            <Button Content="Browse Folder" Command="{Binding BrowseFolderCommand}" Width="130" Margin="0,0,10,0"/>
+            <Button Content="Browse Folder" Command="{Binding BrowseFolderCommand}" Width="130" Margin="0,0,10,0"
+                    Background="SteelBlue" Foreground="White"/>
             <TextBox Text="{Binding InputPath}" IsReadOnly="True" Width="700" Height="25" VerticalContentAlignment="Center"/>
         </StackPanel>
 
         <!-- Browse Files -->
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8" VerticalAlignment="Center">
-            <Button Content="Browse Files" Command="{Binding BrowseFilesCommand}" Width="130" Margin="0,0,10,0"/>
-            <TextBox Text="{Binding FilesCountText, Mode=OneWay}" IsReadOnly="True" Width="700" Height="25" VerticalContentAlignment="Center" />
+            <Button Content="Browse Files" Command="{Binding BrowseFilesCommand}" Width="130" Margin="0,0,10,0"
+                    Background="SteelBlue" Foreground="White"/>
+            <TextBox Text="{Binding FilesCountText, Mode=OneWay}" IsReadOnly="True" Width="700" Height="25" VerticalContentAlignment="Center"/>
         </StackPanel>
 
         <!-- Output Folder -->
         <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8" VerticalAlignment="Center">
-            <Button Content="Select Output Folder" Command="{Binding BrowseOutputFolderCommand}" Width="150" Margin="0,0,10,0"/>
+            <Button Content="Select Output Folder" Command="{Binding BrowseOutputFolderCommand}" Width="130" Margin="0,0,10,0"
+                    Background="SteelBlue" Foreground="White"/>
             <TextBox Text="{Binding OutputPath}" IsReadOnly="True" Width="680" Height="25" VerticalContentAlignment="Center"/>
         </StackPanel>
 
         <!-- Date Filters -->
-        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,0,0,10" VerticalAlignment="Center" HorizontalAlignment="Left" >
+        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,0,0,10" VerticalAlignment="Center" HorizontalAlignment="Left">
 
             <!-- Created Date Filter -->
             <StackPanel Orientation="Vertical" Margin="0,0,20,0">
@@ -71,16 +64,23 @@
             </StackPanel>
 
             <!-- Clear Filters Button -->
-            <Button Content="Clear Filters" Command="{Binding ClearFiltersCommand}" Width="100" VerticalAlignment="Bottom" />
+            <Button Content="Clear Filters" Command="{Binding ClearFiltersCommand}" Width="100" VerticalAlignment="Bottom"
+                    Background="IndianRed" Foreground="White"/>
         </StackPanel>
 
-        <!-- Invert Selection Button -->
+        <!-- Selection Buttons -->
         <StackPanel Orientation="Horizontal" Grid.Row="4" Margin="0,0,0,10" HorizontalAlignment="Left">
-            <Button Content="Invert Selection" Command="{Binding InvertSelectionCommand}" Width="120"/>
+            <Button Content="Invert Selection" Command="{Binding InvertSelectionCommand}" Width="120" Margin="0,0,10,0"
+                    Background="DarkSlateGray" Foreground="White"/>
+            <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="100" Margin="0,0,10,0"
+                    Background="DarkSlateGray" Foreground="White"/>
+            <Button Content="Deselect All" Command="{Binding DeselectAllCommand}" Width="100"
+                    Background="DarkSlateGray" Foreground="White"/>
         </StackPanel>
 
         <!-- Files DataGrid -->
-        <DataGrid Grid.Row="5" ItemsSource="{Binding FilteredFiles}" AutoGenerateColumns="False" CanUserAddRows="False" Height="300" Margin="0,0,0,10" SelectionMode="Extended" SelectionUnit="FullRow" >
+        <DataGrid Grid.Row="5" ItemsSource="{Binding FilteredFiles}" AutoGenerateColumns="False" CanUserAddRows="False"
+                  Height="300" Margin="0,0,0,10" SelectionMode="Extended" SelectionUnit="FullRow">
             <DataGrid.Columns>
                 <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, Mode=TwoWay}" Width="70"/>
                 <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>
@@ -91,17 +91,15 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Select/Deselect Toggle Button -->
-        <StackPanel Orientation="Horizontal" Grid.Row="6" HorizontalAlignment="Left" Margin="0,0,0,10">
-            <Button Content="{Binding SelectDeselectButtonText}" Command="{Binding ToggleSelectCommand}" Width="150"/>
-        </StackPanel>
-
         <!-- Publish Button -->
-        <StackPanel Orientation="Horizontal" Grid.Row="7" HorizontalAlignment="Right">
-            <Button Content="Publish" Command="{Binding PublishCommand}" Width="120"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="6" HorizontalAlignment="Right">
+            <Button Content="Publish" Command="{Binding PublishCommand}" Width="120"
+                    Background="ForestGreen" Foreground="White"/>
         </StackPanel>
 
         <!-- Log TextBox -->
-        <TextBox Grid.Row="8" Text="{Binding Log}" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="Wrap" FontFamily="Consolas" FontSize="12" />
+        <TextBox Grid.Row="7" Text="{Binding Log}" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto" TextWrapping="Wrap"
+                 FontFamily="Consolas" FontSize="12" />
     </Grid>
 </Window>

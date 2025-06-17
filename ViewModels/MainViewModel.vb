@@ -22,6 +22,8 @@ Namespace CreoPublisherApp.ViewModels
         Private _createdDateEnd As Date?
         Private _modifiedDateStart As Date?
         Private _modifiedDateEnd As Date?
+        Private _isAllSelected As Boolean = False
+        Private _selectDeselectButtonText As String = "Select All"
 
         Private _openProe As New OpenProeObjectClass()
         Private _proeCommonFuncs As New ProECommonFunctionalites()
@@ -129,7 +131,17 @@ Namespace CreoPublisherApp.ViewModels
                 Return _filesCountText
             End Get
         End Property
-
+        Public Property SelectDeselectButtonText As String
+            Get
+                Return _selectDeselectButtonText
+            End Get
+            Set(value As String)
+                If _selectDeselectButtonText <> value Then
+                    _selectDeselectButtonText = value
+                    OnPropertyChanged()
+                End If
+            End Set
+        End Property
         Public Property BrowseFolderCommand As ICommand
         Public Property BrowseFilesCommand As ICommand
         Public Property BrowseOutputFolderCommand As ICommand
@@ -137,6 +149,9 @@ Namespace CreoPublisherApp.ViewModels
         Public Property DeselectAllCommand As ICommand
         Public Property InvertSelectionCommand As ICommand
         Public Property PublishCommand As ICommand
+
+        Public Property ToggleSelectCommand As ICommand
+        Public Property ClearFiltersCommand As ICommand
 
         Public Sub New()
             BrowseFolderCommand = New RelayCommand(AddressOf BrowseFolder)
@@ -146,6 +161,10 @@ Namespace CreoPublisherApp.ViewModels
             DeselectAllCommand = New RelayCommand(AddressOf DeselectAllFiles)
             InvertSelectionCommand = New RelayCommand(AddressOf InvertSelectionFiles)
             PublishCommand = New RelayCommand(AddressOf PublishFiles)
+            ToggleSelectCommand = New RelayCommand(AddressOf ToggleSelectDeselect)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
+
+
         End Sub
 
         Private Sub BrowseFolder()
@@ -218,6 +237,25 @@ Namespace CreoPublisherApp.ViewModels
             Next
             OnPropertyChanged(NameOf(Files))
         End Sub
+        Private Sub ToggleSelectDeselect()
+            _isAllSelected = Not _isAllSelected
+
+            For Each f In FilteredFiles
+                f.IsSelected = _isAllSelected
+            Next
+
+            SelectDeselectButtonText = If(_isAllSelected, "Deselect All", "Select All")
+            OnPropertyChanged(NameOf(Files))
+        End Sub
+
+        Private Sub ClearFilters()
+            CreatedDateStart = Nothing
+            CreatedDateEnd = Nothing
+            ModifiedDateStart = Nothing
+            ModifiedDateEnd = Nothing
+            OnPropertyChanged(NameOf(FilteredFiles))
+        End Sub
+
 
         Private Sub PublishFiles()
             Dim selectedFiles = FilteredFiles.Where(Function(f) f.IsSelected).ToList()
