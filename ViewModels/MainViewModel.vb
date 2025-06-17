@@ -1,10 +1,10 @@
 ﻿Imports System.Collections.ObjectModel
 Imports System.ComponentModel
+Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Windows.Input
-Imports Ookii.Dialogs.Wpf
 Imports Microsoft.Win32
-Imports System.IO
+Imports Ookii.Dialogs.Wpf
 Imports System.Linq
 
 Namespace CreoPublisherApp.ViewModels
@@ -24,6 +24,7 @@ Namespace CreoPublisherApp.ViewModels
         Private _modifiedDateEnd As Date?
         Private _isAllSelected As Boolean = False
         Private _selectDeselectButtonText As String = "Select All"
+        Private _searchText As String = String.Empty
 
         Private _openProe As New OpenProeObjectClass()
         Private _proeCommonFuncs As New ProECommonFunctionalites()
@@ -52,6 +53,19 @@ Namespace CreoPublisherApp.ViewModels
             End Set
         End Property
 
+        Public Property SearchText As String
+            Get
+                Return _searchText
+            End Get
+            Set(value As String)
+                If _searchText <> value Then
+                    _searchText = value
+                    OnPropertyChanged()
+                    OnPropertyChanged(NameOf(FilteredFiles))
+                End If
+            End Set
+        End Property
+
         Public ReadOnly Property Files As ObservableCollection(Of FileItemModel)
             Get
                 Return _files
@@ -61,14 +75,14 @@ Namespace CreoPublisherApp.ViewModels
         Public ReadOnly Property FilteredFiles As IEnumerable(Of FileItemModel)
             Get
                 Return _files.Where(Function(f)
-                                        Return (Not CreatedDateStart.HasValue OrElse f.CreatedDate >= CreatedDateStart.Value) AndAlso
-                                       (Not CreatedDateEnd.HasValue OrElse f.CreatedDate <= CreatedDateEnd.Value) AndAlso
-                                       (Not ModifiedDateStart.HasValue OrElse f.ModifiedDate >= ModifiedDateStart.Value) AndAlso
-                                       (Not ModifiedDateEnd.HasValue OrElse f.ModifiedDate <= ModifiedDateEnd.Value)
+                                        Return (String.IsNullOrWhiteSpace(SearchText) OrElse f.FileName.ToLower().Contains(SearchText.ToLower())) AndAlso
+                                               (Not CreatedDateStart.HasValue OrElse f.CreatedDate >= CreatedDateStart.Value) AndAlso
+                                               (Not CreatedDateEnd.HasValue OrElse f.CreatedDate <= CreatedDateEnd.Value) AndAlso
+                                               (Not ModifiedDateStart.HasValue OrElse f.ModifiedDate >= ModifiedDateStart.Value) AndAlso
+                                               (Not ModifiedDateEnd.HasValue OrElse f.ModifiedDate <= ModifiedDateEnd.Value)
                                     End Function)
             End Get
         End Property
-
 
         Public Property CreatedDateStart As Date?
             Get
@@ -131,6 +145,7 @@ Namespace CreoPublisherApp.ViewModels
                 Return _filesCountText
             End Get
         End Property
+
         Public Property SelectDeselectButtonText As String
             Get
                 Return _selectDeselectButtonText
@@ -142,6 +157,7 @@ Namespace CreoPublisherApp.ViewModels
                 End If
             End Set
         End Property
+
         Public Property BrowseFolderCommand As ICommand
         Public Property BrowseFilesCommand As ICommand
         Public Property BrowseOutputFolderCommand As ICommand
@@ -149,7 +165,6 @@ Namespace CreoPublisherApp.ViewModels
         Public Property DeselectAllCommand As ICommand
         Public Property InvertSelectionCommand As ICommand
         Public Property PublishCommand As ICommand
-
         Public Property ToggleSelectCommand As ICommand
         Public Property ClearFiltersCommand As ICommand
 
@@ -163,8 +178,6 @@ Namespace CreoPublisherApp.ViewModels
             PublishCommand = New RelayCommand(AddressOf PublishFiles)
             ToggleSelectCommand = New RelayCommand(AddressOf ToggleSelectDeselect)
             ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
-
-
         End Sub
 
         Private Sub BrowseFolder()
@@ -237,13 +250,12 @@ Namespace CreoPublisherApp.ViewModels
             Next
             OnPropertyChanged(NameOf(Files))
         End Sub
+
         Private Sub ToggleSelectDeselect()
             _isAllSelected = Not _isAllSelected
-
             For Each f In FilteredFiles
                 f.IsSelected = _isAllSelected
             Next
-
             SelectDeselectButtonText = If(_isAllSelected, "Deselect All", "Select All")
             OnPropertyChanged(NameOf(Files))
         End Sub
@@ -253,9 +265,9 @@ Namespace CreoPublisherApp.ViewModels
             CreatedDateEnd = Nothing
             ModifiedDateStart = Nothing
             ModifiedDateEnd = Nothing
+            SearchText = String.Empty
             OnPropertyChanged(NameOf(FilteredFiles))
         End Sub
-
 
         Private Sub PublishFiles()
             Dim selectedFiles = FilteredFiles.Where(Function(f) f.IsSelected).ToList()
@@ -270,7 +282,6 @@ Namespace CreoPublisherApp.ViewModels
 
             Log &= $"Starting Creo launch and export for {selectedFiles.Count} files..." & Environment.NewLine
 
-            ' Launch Creo session
             Dim workingDir = Environment.CurrentDirectory
             Dim launchSuccess = _openProe.RunProe(workingDir)
             If Not launchSuccess Then
@@ -278,7 +289,6 @@ Namespace CreoPublisherApp.ViewModels
                 Return
             End If
 
-            ' Initialize Creo session
             CreoSessionManager.Instance.InitializeCreoSession()
             If CreoSessionManager.Instance.Session Is Nothing Then
                 Log &= "Failed to initialize Creo session." & Environment.NewLine
@@ -301,32 +311,6 @@ Namespace CreoPublisherApp.ViewModels
             RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
         End Sub
 
-    End Class
-
-    Public Class RelayCommand
-        Implements ICommand
-
-        Private ReadOnly _execute As Action
-        Private ReadOnly _canExecute As Func(Of Boolean)
-
-        Public Sub New(execute As Action, Optional canExecute As Func(Of Boolean) = Nothing)
-            _execute = execute
-            _canExecute = canExecute
-        End Sub
-
-        Public Function CanExecute(parameter As Object) As Boolean Implements ICommand.CanExecute
-            Return If(_canExecute Is Nothing, True, _canExecute())
-        End Function
-
-        Public Event CanExecuteChanged As EventHandler Implements ICommand.CanExecuteChanged
-
-        Public Sub Execute(parameter As Object) Implements ICommand.Execute
-            _execute()
-        End Sub
-
-        Public Sub RaiseCanExecuteChanged()
-            RaiseEvent CanExecuteChanged(Me, EventArgs.Empty)
-        End Sub
     End Class
 
 End Namespace

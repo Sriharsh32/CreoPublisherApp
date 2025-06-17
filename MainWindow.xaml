@@ -38,33 +38,41 @@
             <TextBox Text="{Binding OutputPath}" IsReadOnly="True" Width="680" Height="25" VerticalContentAlignment="Center"/>
         </StackPanel>
 
-        <!-- Date Filters -->
+        <!-- Date Filters + Search -->
         <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,0,0,10" VerticalAlignment="Center" HorizontalAlignment="Left">
-
-            <!-- Created Date Filter -->
-            <StackPanel Orientation="Vertical" Margin="0,0,20,0">
-                <TextBlock Text="Created Date Start:" FontWeight="Bold" />
-                <DatePicker SelectedDate="{Binding CreatedDateStart, Mode=TwoWay}" Width="140"/>
+            <!-- Created Date Start -->
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0">
+                <TextBlock Text="Created Start" FontWeight="Bold"/>
+                <DatePicker SelectedDate="{Binding CreatedDateStart}" Width="130"/>
             </StackPanel>
 
-            <StackPanel Orientation="Vertical" Margin="0,0,20,0">
-                <TextBlock Text="Created Date End:" FontWeight="Bold" />
-                <DatePicker SelectedDate="{Binding CreatedDateEnd, Mode=TwoWay}" Width="140"/>
+            <!-- Created Date End -->
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0">
+                <TextBlock Text="Created End" FontWeight="Bold"/>
+                <DatePicker SelectedDate="{Binding CreatedDateEnd}" Width="130"/>
             </StackPanel>
 
-            <!-- Modified Date Filter -->
-            <StackPanel Orientation="Vertical" Margin="0,0,20,0">
-                <TextBlock Text="Modified Date Start:" FontWeight="Bold" />
-                <DatePicker SelectedDate="{Binding ModifiedDateStart, Mode=TwoWay}" Width="140"/>
+            <!-- Modified Date Start -->
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0">
+                <TextBlock Text="Modified Start" FontWeight="Bold"/>
+                <DatePicker SelectedDate="{Binding ModifiedDateStart}" Width="130"/>
             </StackPanel>
 
-            <StackPanel Orientation="Vertical" Margin="0,0,20,0">
-                <TextBlock Text="Modified Date End:" FontWeight="Bold" />
-                <DatePicker SelectedDate="{Binding ModifiedDateEnd, Mode=TwoWay}" Width="140"/>
+            <!-- Modified Date End -->
+            <StackPanel Orientation="Vertical" Margin="0,0,10,0">
+                <TextBlock Text="Modified End" FontWeight="Bold"/>
+                <DatePicker SelectedDate="{Binding ModifiedDateEnd}" Width="130"/>
             </StackPanel>
 
-            <!-- Clear Filters Button -->
-            <Button Content="Clear Filters" Command="{Binding ClearFiltersCommand}" Width="100" VerticalAlignment="Bottom"
+            <!-- Search -->
+            <StackPanel Orientation="Vertical" Margin="10,0,10,0">
+                <TextBlock Text="Search Filename" FontWeight="Bold"/>
+                <TextBox Width="160" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <!-- Clear -->
+            <Button Content="Clear Filters" Command="{Binding ClearFiltersCommand}" Width="100"
+                    VerticalAlignment="Bottom" Margin="5,0,0,0"
                     Background="IndianRed" Foreground="White"/>
         </StackPanel>
 
@@ -97,9 +105,9 @@
                     Background="ForestGreen" Foreground="White"/>
         </StackPanel>
 
-        <!-- Log TextBox -->
+        <!-- Log Output -->
         <TextBox Grid.Row="7" Text="{Binding Log}" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
                  HorizontalScrollBarVisibility="Auto" TextWrapping="Wrap"
-                 FontFamily="Consolas" FontSize="12" />
+                 FontFamily="Consolas" FontSize="12"/>
     </Grid>
 </Window>
