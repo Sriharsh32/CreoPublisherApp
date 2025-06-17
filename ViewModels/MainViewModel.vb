@@ -18,6 +18,11 @@ Namespace CreoPublisherApp.ViewModels
         Private _log As String = ""
         Private _filesCountText As String = "No files selected."
 
+        Private _createdDateStart As Date?
+        Private _createdDateEnd As Date?
+        Private _modifiedDateStart As Date?
+        Private _modifiedDateEnd As Date?
+
         Private _openProe As New OpenProeObjectClass()
         Private _proeCommonFuncs As New ProECommonFunctionalites()
 
@@ -49,6 +54,62 @@ Namespace CreoPublisherApp.ViewModels
             Get
                 Return _files
             End Get
+        End Property
+
+        Public ReadOnly Property FilteredFiles As IEnumerable(Of FileItemModel)
+            Get
+                Return _files.Where(Function(f)
+                                        Return (Not CreatedDateStart.HasValue OrElse f.CreatedDate >= CreatedDateStart.Value) AndAlso
+                                       (Not CreatedDateEnd.HasValue OrElse f.CreatedDate <= CreatedDateEnd.Value) AndAlso
+                                       (Not ModifiedDateStart.HasValue OrElse f.ModifiedDate >= ModifiedDateStart.Value) AndAlso
+                                       (Not ModifiedDateEnd.HasValue OrElse f.ModifiedDate <= ModifiedDateEnd.Value)
+                                    End Function)
+            End Get
+        End Property
+
+
+        Public Property CreatedDateStart As Date?
+            Get
+                Return _createdDateStart
+            End Get
+            Set(value As Date?)
+                _createdDateStart = value
+                OnPropertyChanged()
+                OnPropertyChanged(NameOf(FilteredFiles))
+            End Set
+        End Property
+
+        Public Property CreatedDateEnd As Date?
+            Get
+                Return _createdDateEnd
+            End Get
+            Set(value As Date?)
+                _createdDateEnd = value
+                OnPropertyChanged()
+                OnPropertyChanged(NameOf(FilteredFiles))
+            End Set
+        End Property
+
+        Public Property ModifiedDateStart As Date?
+            Get
+                Return _modifiedDateStart
+            End Get
+            Set(value As Date?)
+                _modifiedDateStart = value
+                OnPropertyChanged()
+                OnPropertyChanged(NameOf(FilteredFiles))
+            End Set
+        End Property
+
+        Public Property ModifiedDateEnd As Date?
+            Get
+                Return _modifiedDateEnd
+            End Get
+            Set(value As Date?)
+                _modifiedDateEnd = value
+                OnPropertyChanged()
+                OnPropertyChanged(NameOf(FilteredFiles))
+            End Set
         End Property
 
         Public Property Log As String
@@ -107,6 +168,7 @@ Namespace CreoPublisherApp.ViewModels
                 Next
                 InputPath = "Multiple files selected"
                 UpdateFilesCountText()
+                OnPropertyChanged(NameOf(FilteredFiles))
             End If
         End Sub
 
@@ -125,6 +187,7 @@ Namespace CreoPublisherApp.ViewModels
                     _files.Add(New FileItemModel(filePath))
                 Next
                 UpdateFilesCountText()
+                OnPropertyChanged(NameOf(FilteredFiles))
             Catch ex As Exception
                 Log &= $"Error loading files from folder: {ex.Message}{Environment.NewLine}"
             End Try
@@ -136,28 +199,28 @@ Namespace CreoPublisherApp.ViewModels
         End Sub
 
         Private Sub SelectAllFiles()
-            For Each f In _files
+            For Each f In FilteredFiles
                 f.IsSelected = True
             Next
             OnPropertyChanged(NameOf(Files))
         End Sub
 
         Private Sub DeselectAllFiles()
-            For Each f In _files
+            For Each f In FilteredFiles
                 f.IsSelected = False
             Next
             OnPropertyChanged(NameOf(Files))
         End Sub
 
         Private Sub InvertSelectionFiles()
-            For Each f In _files
+            For Each f In FilteredFiles
                 f.IsSelected = Not f.IsSelected
             Next
             OnPropertyChanged(NameOf(Files))
         End Sub
 
         Private Sub PublishFiles()
-            Dim selectedFiles = _files.Where(Function(f) f.IsSelected).ToList()
+            Dim selectedFiles = FilteredFiles.Where(Function(f) f.IsSelected).ToList()
             If selectedFiles.Count = 0 Then
                 Log &= "No files selected for publishing." & Environment.NewLine
                 Return
@@ -184,21 +247,15 @@ Namespace CreoPublisherApp.ViewModels
                 Return
             End If
 
-
             _proeCommonFuncs.setConfigOption("display_planes", "no")
             _proeCommonFuncs.setConfigOption("display_axes", "no")
             _proeCommonFuncs.setConfigOption("display_coord_sys", "no")
-            ' Export selected drawings as PDF
             _proeCommonFuncs.ExportAllDrawingsAsPDF(selectedFiles, OutputPath)
 
-            ' Update UI statuses and log after export
             For Each file In selectedFiles
                 OnPropertyChanged(NameOf(Files))
             Next
             Log &= "Publishing complete." & Environment.NewLine
-
-            ' Optional: close Creo session
-            '_openProe.KillCreO()
         End Sub
 
         Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
