@@ -2,6 +2,7 @@
 Imports System.ComponentModel
 Imports System.Runtime.CompilerServices
 
+' Represents a file item with properties for display and selection in a WPF application.
 Public Class FileItemModel
     Implements INotifyPropertyChanged
 
@@ -22,8 +23,24 @@ Public Class FileItemModel
 
     Public Property FileName As String
     Public Property FullPath As String
-    Public Property CreatedDate As String
-    Public Property ModifiedDate As String
+
+    ' Raw DateTime properties used for filtering
+    Public Property CreatedDateRaw As DateTime
+    Public Property ModifiedDateRaw As DateTime
+
+    ' Formatted properties used for display in UI
+    Public ReadOnly Property CreatedDate As String
+        Get
+            Return CreatedDateRaw.ToString("g")
+        End Get
+    End Property
+
+    Public ReadOnly Property ModifiedDate As String
+        Get
+            Return ModifiedDateRaw.ToString("g")
+        End Get
+    End Property
+
     Public Property FileSize As String
 
     Public Property Status As String
@@ -39,15 +56,16 @@ Public Class FileItemModel
     End Property
 
     Public Sub New(path As String)
-        Dim fi = New FileInfo(path)
+        Dim fi As New FileInfo(path)
         FileName = fi.Name
         FullPath = path
-        CreatedDate = fi.CreationTime.ToString("g")
-        ModifiedDate = fi.LastWriteTime.ToString("g")
+        CreatedDateRaw = fi.CreationTime
+        ModifiedDateRaw = fi.LastWriteTime
         FileSize = $"{Math.Round(fi.Length / 1024.0, 2)} KB"
     End Sub
 
     Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
+
     Protected Sub OnPropertyChanged(<CallerMemberName> Optional propertyName As String = Nothing)
         RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
     End Sub

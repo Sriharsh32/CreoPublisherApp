@@ -2,6 +2,7 @@
 
 Public Class CreoSessionManager
     Private Shared _instance As CreoSessionManager
+
     Public Shared ReadOnly Property Instance As CreoSessionManager
         Get
             If _instance Is Nothing Then _instance = New CreoSessionManager()

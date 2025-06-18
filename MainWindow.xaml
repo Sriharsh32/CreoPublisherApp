@@ -88,7 +88,7 @@
 
         <!-- Files DataGrid -->
         <DataGrid Grid.Row="5" ItemsSource="{Binding FilteredFiles}" AutoGenerateColumns="False" CanUserAddRows="False"
-                  Height="300" Margin="0,0,0,10" SelectionMode="Extended" SelectionUnit="FullRow">
+                  Height="300" Margin="0,0,0,10" SelectionMode="Single" SelectionUnit="FullRow" IsReadOnly="False">
             <DataGrid.Columns>
                 <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, Mode=TwoWay}" Width="70"/>
                 <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>

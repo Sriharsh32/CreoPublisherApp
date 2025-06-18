@@ -2,6 +2,7 @@
 Imports System.ComponentModel
 Imports System.IO
 Imports System.Runtime.CompilerServices
+Imports System.Windows.Data
 Imports System.Windows.Input
 Imports Microsoft.Win32
 Imports Ookii.Dialogs.Wpf
@@ -15,6 +16,8 @@ Namespace CreoPublisherApp.ViewModels
         Private _inputPath As String = ""
         Private _outputPath As String = ""
         Private _files As ObservableCollection(Of FileItemModel) = New ObservableCollection(Of FileItemModel)()
+        Private _filteredFilesView As ICollectionView
+
         Private _log As String = ""
         Private _filesCountText As String = "No files selected."
 
@@ -26,8 +29,27 @@ Namespace CreoPublisherApp.ViewModels
         Private _selectDeselectButtonText As String = "Select All"
         Private _searchText As String = String.Empty
 
+        ' Creo automation classes
         Private _openProe As New OpenProeObjectClass()
         Private _proeCommonFuncs As New ProECommonFunctionalites()
+
+        Public Sub New()
+            _filteredFilesView = CollectionViewSource.GetDefaultView(_files)
+            _filteredFilesView.Filter = AddressOf FilterFiles
+
+            ' Commands
+            BrowseFolderCommand = New RelayCommand(AddressOf BrowseFolder)
+            BrowseFilesCommand = New RelayCommand(AddressOf BrowseFiles)
+            BrowseOutputFolderCommand = New RelayCommand(AddressOf BrowseOutputFolder)
+            SelectAllCommand = New RelayCommand(AddressOf SelectAllFiles)
+            DeselectAllCommand = New RelayCommand(AddressOf DeselectAllFiles)
+            InvertSelectionCommand = New RelayCommand(AddressOf InvertSelectionFiles)
+            PublishCommand = New RelayCommand(AddressOf PublishFiles)
+            ToggleSelectCommand = New RelayCommand(AddressOf ToggleSelectDeselect)
+            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
+        End Sub
+
+        ' Properties
 
         Public Property InputPath As String
             Get
@@ -61,7 +83,7 @@ Namespace CreoPublisherApp.ViewModels
                 If _searchText <> value Then
                     _searchText = value
                     OnPropertyChanged()
-                    OnPropertyChanged(NameOf(FilteredFiles))
+                    RefreshFilter()
                 End If
             End Set
         End Property
@@ -72,15 +94,9 @@ Namespace CreoPublisherApp.ViewModels
             End Get
         End Property
 
-        Public ReadOnly Property FilteredFiles As IEnumerable(Of FileItemModel)
+        Public ReadOnly Property FilteredFiles As ICollectionView
             Get
-                Return _files.Where(Function(f)
-                                        Return (String.IsNullOrWhiteSpace(SearchText) OrElse f.FileName.ToLower().Contains(SearchText.ToLower())) AndAlso
-                                               (Not CreatedDateStart.HasValue OrElse f.CreatedDate >= CreatedDateStart.Value) AndAlso
-                                               (Not CreatedDateEnd.HasValue OrElse f.CreatedDate <= CreatedDateEnd.Value) AndAlso
-                                               (Not ModifiedDateStart.HasValue OrElse f.ModifiedDate >= ModifiedDateStart.Value) AndAlso
-                                               (Not ModifiedDateEnd.HasValue OrElse f.ModifiedDate <= ModifiedDateEnd.Value)
-                                    End Function)
+                Return _filteredFilesView
             End Get
         End Property
 
@@ -91,7 +107,7 @@ Namespace CreoPublisherApp.ViewModels
             Set(value As Date?)
                 _createdDateStart = value
                 OnPropertyChanged()
-                OnPropertyChanged(NameOf(FilteredFiles))
+                RefreshFilter()
             End Set
         End Property
 
@@ -102,7 +118,7 @@ Namespace CreoPublisherApp.ViewModels
             Set(value As Date?)
                 _createdDateEnd = value
                 OnPropertyChanged()
-                OnPropertyChanged(NameOf(FilteredFiles))
+                RefreshFilter()
             End Set
         End Property
 
@@ -113,7 +129,7 @@ Namespace CreoPublisherApp.ViewModels
             Set(value As Date?)
                 _modifiedDateStart = value
                 OnPropertyChanged()
-                OnPropertyChanged(NameOf(FilteredFiles))
+                RefreshFilter()
             End Set
         End Property
 
@@ -124,7 +140,7 @@ Namespace CreoPublisherApp.ViewModels
             Set(value As Date?)
                 _modifiedDateEnd = value
                 OnPropertyChanged()
-                OnPropertyChanged(NameOf(FilteredFiles))
+                RefreshFilter()
             End Set
         End Property
 
@@ -158,6 +174,7 @@ Namespace CreoPublisherApp.ViewModels
             End Set
         End Property
 
+        ' Commands
         Public Property BrowseFolderCommand As ICommand
         Public Property BrowseFilesCommand As ICommand
         Public Property BrowseOutputFolderCommand As ICommand
@@ -168,17 +185,25 @@ Namespace CreoPublisherApp.ViewModels
         Public Property ToggleSelectCommand As ICommand
         Public Property ClearFiltersCommand As ICommand
 
-        Public Sub New()
-            BrowseFolderCommand = New RelayCommand(AddressOf BrowseFolder)
-            BrowseFilesCommand = New RelayCommand(AddressOf BrowseFiles)
-            BrowseOutputFolderCommand = New RelayCommand(AddressOf BrowseOutputFolder)
-            SelectAllCommand = New RelayCommand(AddressOf SelectAllFiles)
-            DeselectAllCommand = New RelayCommand(AddressOf DeselectAllFiles)
-            InvertSelectionCommand = New RelayCommand(AddressOf InvertSelectionFiles)
-            PublishCommand = New RelayCommand(AddressOf PublishFiles)
-            ToggleSelectCommand = New RelayCommand(AddressOf ToggleSelectDeselect)
-            ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
+        ' Filtering logic
+        Private Function FilterFiles(obj As Object) As Boolean
+            Dim file = TryCast(obj, FileItemModel)
+            If file Is Nothing Then Return False
+
+            Dim matchesSearch As Boolean = String.IsNullOrWhiteSpace(SearchText) OrElse file.FileName.ToLower().Contains(SearchText.ToLower())
+            Dim matchesCreatedStart As Boolean = Not CreatedDateStart.HasValue OrElse file.CreatedDateRaw >= CreatedDateStart.Value
+            Dim matchesCreatedEnd As Boolean = Not CreatedDateEnd.HasValue OrElse file.CreatedDateRaw <= CreatedDateEnd.Value
+            Dim matchesModifiedStart As Boolean = Not ModifiedDateStart.HasValue OrElse file.ModifiedDateRaw >= ModifiedDateStart.Value
+            Dim matchesModifiedEnd As Boolean = Not ModifiedDateEnd.HasValue OrElse file.ModifiedDateRaw <= ModifiedDateEnd.Value
+
+            Return matchesSearch AndAlso matchesCreatedStart AndAlso matchesCreatedEnd AndAlso matchesModifiedStart AndAlso matchesModifiedEnd
+        End Function
+
+        Private Sub RefreshFilter()
+            _filteredFilesView.Refresh()
         End Sub
+
+        ' File loading and updating
 
         Private Sub BrowseFolder()
             Dim dialog As New VistaFolderBrowserDialog()
@@ -200,7 +225,7 @@ Namespace CreoPublisherApp.ViewModels
                 Next
                 InputPath = "Multiple files selected"
                 UpdateFilesCountText()
-                OnPropertyChanged(NameOf(FilteredFiles))
+                RefreshFilter()
             End If
         End Sub
 
@@ -214,12 +239,13 @@ Namespace CreoPublisherApp.ViewModels
         Private Sub LoadFilesFromFolder(folderPath As String)
             Try
                 _files.Clear()
-                Dim filesInFolder = Directory.GetFiles(folderPath, "*.drw")
+                Dim filesInFolder = Directory.GetFiles(folderPath).
+                Where(Function(f) Path.GetExtension(f).ToLower() = ".drw").ToArray()
                 For Each filePath In filesInFolder
                     _files.Add(New FileItemModel(filePath))
                 Next
                 UpdateFilesCountText()
-                OnPropertyChanged(NameOf(FilteredFiles))
+                RefreshFilter()
             Catch ex As Exception
                 Log &= $"Error loading files from folder: {ex.Message}{Environment.NewLine}"
             End Try
@@ -230,22 +256,24 @@ Namespace CreoPublisherApp.ViewModels
             OnPropertyChanged(NameOf(FilesCountText))
         End Sub
 
+        ' Selection manipulation on filtered view
+
         Private Sub SelectAllFiles()
-            For Each f In FilteredFiles
+            For Each f As FileItemModel In _filteredFilesView
                 f.IsSelected = True
             Next
             OnPropertyChanged(NameOf(Files))
         End Sub
 
         Private Sub DeselectAllFiles()
-            For Each f In FilteredFiles
+            For Each f As FileItemModel In _filteredFilesView
                 f.IsSelected = False
             Next
             OnPropertyChanged(NameOf(Files))
         End Sub
 
         Private Sub InvertSelectionFiles()
-            For Each f In FilteredFiles
+            For Each f As FileItemModel In _filteredFilesView
                 f.IsSelected = Not f.IsSelected
             Next
             OnPropertyChanged(NameOf(Files))
@@ -253,7 +281,7 @@ Namespace CreoPublisherApp.ViewModels
 
         Private Sub ToggleSelectDeselect()
             _isAllSelected = Not _isAllSelected
-            For Each f In FilteredFiles
+            For Each f As FileItemModel In _filteredFilesView
                 f.IsSelected = _isAllSelected
             Next
             SelectDeselectButtonText = If(_isAllSelected, "Deselect All", "Select All")
@@ -266,12 +294,16 @@ Namespace CreoPublisherApp.ViewModels
             ModifiedDateStart = Nothing
             ModifiedDateEnd = Nothing
             SearchText = String.Empty
-            OnPropertyChanged(NameOf(FilteredFiles))
+            RefreshFilter()
         End Sub
 
+        ' Publishing
+
         Private Sub PublishFiles()
-            Dim selectedFiles = FilteredFiles.Where(Function(f) f.IsSelected).ToList()
+            Dim selectedFiles = _files.Where(Function(f) f.IsSelected).ToList()
             If selectedFiles.Count = 0 Then
+                MessageBox.Show("No Files selected for publishing")
+
                 Log &= "No files selected for publishing." & Environment.NewLine
                 Return
             End If
@@ -306,6 +338,7 @@ Namespace CreoPublisherApp.ViewModels
             Log &= "Publishing complete." & Environment.NewLine
         End Sub
 
+        ' INotifyPropertyChanged implementation
         Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
         Protected Sub OnPropertyChanged(<CallerMemberName> Optional propertyName As String = Nothing)
             RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
