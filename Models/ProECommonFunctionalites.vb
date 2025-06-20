@@ -1,27 +1,51 @@
 ﻿Imports pfcls
 Imports System.IO
-Imports System.Windows
 
 Public Class ProECommonFunctionalites
 
-
-    'for disable of ucs 
+    ' Set Creo config option
     Public Sub setConfigOption(configName As String, configValue As String)
         Dim creoSession As IpfcBaseSession = CreoSessionManager.Instance.Session
         creoSession.SetConfigOption(configName, configValue)
-
     End Sub
-    Public Sub ExportAllDrawingsAsPDF(fileItems As List(Of FileItemModel), outputFolder As String)
+
+    ' Export all selected drawings with custom PDF names
+    Public Sub ExportAllDrawingsAsPDF(fileItems As List(Of FileItemModel),
+                                      outputFolder As String,
+                                      leftMargin As String,
+                                      topMargin As String,
+                                      resolutions As List(Of String),
+                                      paperSize As String,
+                                      orientation As String)
+
         Dim session = CreoSessionManager.Instance.Session
+
+        ' Optional: set resolution
+        Dim dpi As String = If(resolutions.Count > 0, resolutions.Max(), "300")
+        Try
+            session.SetConfigOption("pdf_image_dpi", dpi)
+        Catch ex As Exception
+            ' Some Creo versions may not support this option
+        End Try
+
+        ' Set margins (if Creo version supports it)
+        Try
+            session.SetConfigOption("pdf_left_margin", leftMargin)
+            session.SetConfigOption("pdf_top_margin", topMargin)
+        Catch ex As Exception
+            ' Older Creo versions (e.g., 2.0) may not support margin config options
+        End Try
+
+        ' Note: paperSize and orientation may also require custom plot config files
 
         For Each item In fileItems.Where(Function(f) f.IsSelected)
             Try
-                Dim name = Path.GetFileNameWithoutExtension(item.FullPath)
-                Dim dir = Path.GetDirectoryName(item.FullPath)
+                Dim modelName = Path.GetFileNameWithoutExtension(item.FullPath)
+                Dim directory = Path.GetDirectoryName(item.FullPath)
 
-                session.ChangeDirectory(dir)
+                session.ChangeDirectory(directory)
 
-                Dim desc = (New CCpfcModelDescriptor()).Create(EpfcModelType.EpfcMDL_DRAWING, name, Nothing)
+                Dim desc = (New CCpfcModelDescriptor()).Create(EpfcModelType.EpfcMDL_DRAWING, modelName, Nothing)
                 Dim model As IpfcModel = session.RetrieveModel(desc)
 
                 If model Is Nothing Then
@@ -29,11 +53,16 @@ Public Class ProECommonFunctionalites
                     Continue For
                 End If
 
+                ' Create basic PDF export instructions
                 Dim pdfInstr As IpfcPDFExportInstructions = (New CCpfcPDFExportInstructions()).Create()
-                pdfInstr.FilePath = Path.Combine(outputFolder, name & ".pdf")
+
+                ' Set output file name (custom if given)
+                Dim customName = If(String.IsNullOrWhiteSpace(item.CustomPdfName), modelName, item.CustomPdfName)
+                Dim pdfPath = Path.Combine(outputFolder, customName & ".pdf")
+                pdfInstr.FilePath = pdfPath
 
                 model.Display()
-                model.Export(pdfInstr.FilePath, pdfInstr)
+                model.Export(pdfPath, pdfInstr)
 
                 item.Status = "Success"
             Catch ex As Exception
@@ -41,4 +70,5 @@ Public Class ProECommonFunctionalites
             End Try
         Next
     End Sub
+
 End Class
