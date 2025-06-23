@@ -9,6 +9,10 @@ Namespace CreoPublisherApp
             InitializeComponent()
             DataContext = New MainViewModel()
         End Sub
+
+        Private Sub DataGrid_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
+
+        End Sub
     End Class
 
 End Namespace
