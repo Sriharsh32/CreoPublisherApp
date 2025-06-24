@@ -7,6 +7,7 @@ Imports System.Windows.Input
 Imports Microsoft.Win32
 Imports Ookii.Dialogs.Wpf
 Imports System.Linq
+Imports System.Windows ' For MessageBox and Window
 
 Namespace CreoPublisherApp.ViewModels
 
@@ -28,18 +29,13 @@ Namespace CreoPublisherApp.ViewModels
         Private _isAllSelected As Boolean = False
         Private _selectDeselectButtonText As String = "Select All"
         Private _searchText As String = String.Empty
-        Private _leftMargin As String = ""
-        Private _topMargin As String = ""
-        Private _selectedResolutions As New ObservableCollection(Of String) From {"300"}
-        Private _selectedPaperSize As String = "A4"
-        Private _selectedOrientation As String = "Portrait"
-
-        ' New property for Settings popup visibility
-        Private _isSettingsVisible As Boolean = False
 
         ' Creo automation classes
         Private _openProe As New OpenProeObjectClass()
         Private _proeCommonFuncs As New ProECommonFunctionalites()
+
+        ' Command to open Settings window
+        Public Property OpenSettingsWindowCommand As ICommand
 
         Public Sub New()
             _filteredFilesView = CollectionViewSource.GetDefaultView(_files)
@@ -55,11 +51,9 @@ Namespace CreoPublisherApp.ViewModels
             PublishCommand = New RelayCommand(AddressOf PublishFiles)
             ToggleSelectCommand = New RelayCommand(AddressOf ToggleSelectDeselect)
             ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
+
+            ' Settings window open command
             OpenSettingsWindowCommand = New RelayCommand(AddressOf OpenSettingsWindow)
-
-
-            ' New command for toggling Settings popup
-            ToggleSettingsVisibilityCommand = New RelayCommand(AddressOf ToggleSettingsVisibility)
         End Sub
 
         ' Properties
@@ -186,66 +180,6 @@ Namespace CreoPublisherApp.ViewModels
                 End If
             End Set
         End Property
-        Public Property LeftMargin As String
-            Get
-                Return _leftMargin
-            End Get
-            Set(value As String)
-                _leftMargin = value
-                OnPropertyChanged()
-            End Set
-        End Property
-        Public Property TopMargin As String
-            Get
-                Return _topMargin
-            End Get
-            Set(value As String)
-                _topMargin = value
-                OnPropertyChanged()
-            End Set
-        End Property
-        Public Property SelectedResolutions As ObservableCollection(Of String)
-            Get
-                Return _selectedResolutions
-            End Get
-            Set(value As ObservableCollection(Of String))
-                _selectedResolutions = value
-                OnPropertyChanged()
-            End Set
-        End Property
-
-        Public Property SelectedPaperSize As String
-            Get
-                Return _selectedPaperSize
-            End Get
-            Set(value As String)
-                _selectedPaperSize = value
-                OnPropertyChanged()
-            End Set
-        End Property
-
-        Public Property SelectedOrientation As String
-            Get
-                Return _selectedOrientation
-            End Get
-            Set(value As String)
-                _selectedOrientation = value
-                OnPropertyChanged()
-            End Set
-        End Property
-
-        ' New Property for Settings Popup Visibility
-        Public Property IsSettingsVisible As Boolean
-            Get
-                Return _isSettingsVisible
-            End Get
-            Set(value As Boolean)
-                If _isSettingsVisible <> value Then
-                    _isSettingsVisible = value
-                    OnPropertyChanged()
-                End If
-            End Set
-        End Property
 
         ' Commands
         Public Property BrowseFolderCommand As ICommand
@@ -257,12 +191,6 @@ Namespace CreoPublisherApp.ViewModels
         Public Property PublishCommand As ICommand
         Public Property ToggleSelectCommand As ICommand
         Public Property ClearFiltersCommand As ICommand
-
-        Public Property OpenSettingsWindowCommand As ICommand
-
-
-        ' New command for toggling Settings popup
-        Public Property ToggleSettingsVisibilityCommand As ICommand
 
         ' Filtering logic
         Private Function FilterFiles(obj As Object) As Boolean
@@ -375,12 +303,6 @@ Namespace CreoPublisherApp.ViewModels
             Next
             OnPropertyChanged(NameOf(Files))
         End Sub
-        Private Sub OpenSettingsWindow()
-            Dim settingsWin As New SettingsWindow()
-            settingsWin.DataContext = New SettingsWindowViewModel(Me, settingsWin)
-            settingsWin.Owner = Application.Current.MainWindow
-            settingsWin.ShowDialog()
-        End Sub
 
         ' Publishing
 
@@ -400,7 +322,15 @@ Namespace CreoPublisherApp.ViewModels
             Log &= $"Starting Creo launch and export for {selectedFiles.Count} files..." & Environment.NewLine
 
             Dim workingDir = Environment.CurrentDirectory
-            Dim launchSuccess = _openProe.RunProe(workingDir)
+            Dim savedCreoPath = My.Settings.CreoPath
+            If String.IsNullOrEmpty(savedCreoPath) OrElse Not File.Exists(savedCreoPath) Then
+                MessageBox.Show("Invalid or missing Creo executable path. Please set it in Settings.")
+                Log &= "Invalid or missing Creo path." & Environment.NewLine
+                Return
+            End If
+
+            Dim launchSuccess = _openProe.RunProeWithPath(savedCreoPath, workingDir)
+
             If Not launchSuccess Then
                 MessageBox.Show("Failed to launch Creo")
                 Log &= "Failed to launch Creo." & Environment.NewLine
@@ -417,7 +347,7 @@ Namespace CreoPublisherApp.ViewModels
             _proeCommonFuncs.setConfigOption("display_planes", "no")
             _proeCommonFuncs.setConfigOption("display_axes", "no")
             _proeCommonFuncs.setConfigOption("display_coord_sys", "no")
-            _proeCommonFuncs.ExportAllDrawingsAsPDF(selectedFiles, OutputPath, LeftMargin, TopMargin, SelectedResolutions.ToList(), SelectedPaperSize, SelectedOrientation)
+            _proeCommonFuncs.ExportAllDrawingsAsPDF(selectedFiles, OutputPath)
 
             For Each file In selectedFiles
                 OnPropertyChanged(NameOf(Files))
@@ -425,9 +355,11 @@ Namespace CreoPublisherApp.ViewModels
             Log &= "Publishing complete." & Environment.NewLine
         End Sub
 
-        ' New method to toggle settings popup visibility
-        Private Sub ToggleSettingsVisibility()
-            IsSettingsVisible = Not IsSettingsVisible
+        ' Open Settings window modal dialog
+        Private Sub OpenSettingsWindow()
+            Dim settingsWin As New SettingsWindow()
+            settingsWin.Owner = System.Windows.Application.Current.MainWindow
+            settingsWin.ShowDialog()
         End Sub
 
         ' INotifyPropertyChanged implementation

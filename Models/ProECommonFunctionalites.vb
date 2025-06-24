@@ -11,33 +11,9 @@ Public Class ProECommonFunctionalites
 
     ' Export all selected drawings with custom PDF names
     Public Sub ExportAllDrawingsAsPDF(fileItems As List(Of FileItemModel),
-                                      outputFolder As String,
-                                      leftMargin As String,
-                                      topMargin As String,
-                                      resolutions As List(Of String),
-                                      paperSize As String,
-                                      orientation As String)
+                                      outputFolder As String)
 
         Dim session = CreoSessionManager.Instance.Session
-
-        ' Optional: set resolution
-        Dim dpi As String = If(resolutions.Count > 0, resolutions.Max(), "300")
-        Try
-            session.SetConfigOption("pdf_image_dpi", dpi)
-        Catch ex As Exception
-            ' Some Creo versions may not support this option
-        End Try
-
-        ' Set margins (if Creo version supports it)
-        Try
-            session.SetConfigOption("pdf_left_margin", leftMargin)
-            session.SetConfigOption("pdf_top_margin", topMargin)
-        Catch ex As Exception
-            ' Older Creo versions (e.g., 2.0) may not support margin config options
-        End Try
-
-        ' Note: paperSize and orientation may also require custom plot config files
-
         For Each item In fileItems.Where(Function(f) f.IsSelected)
             Try
                 Dim modelName = Path.GetFileNameWithoutExtension(item.FullPath)
