@@ -181,6 +181,8 @@ Namespace CreoPublisherApp.ViewModels
             End Set
         End Property
 
+        ' End of properties 
+
         ' Commands
         Public Property BrowseFolderCommand As ICommand
         Public Property BrowseFilesCommand As ICommand
@@ -223,7 +225,7 @@ Namespace CreoPublisherApp.ViewModels
         Private Sub BrowseFiles()
             Dim dlg As New OpenFileDialog()
             dlg.Multiselect = True
-            dlg.Filter = "Creo Drawing Files (*.drw)|*.drw|All files (*.*)|*.*"
+            dlg.Filter = "Creo Drawing Files (*.drw)|*.drw"
 
             If dlg.ShowDialog() = True Then
                 _files.Clear()
@@ -242,7 +244,7 @@ Namespace CreoPublisherApp.ViewModels
                 OutputPath = dialog.SelectedPath
             End If
         End Sub
-
+        'Method for loading files from folder
         Private Sub LoadFilesFromFolder(folderPath As String)
             Try
                 _files.Clear()
@@ -257,7 +259,7 @@ Namespace CreoPublisherApp.ViewModels
                 Log &= $"Error loading files from folder: {ex.Message}{Environment.NewLine}"
             End Try
         End Sub
-
+        'Method for updating the select count if multiple files selected
         Private Sub UpdateFilesCountText()
             _filesCountText = $"{_files.Count} file(s) selected"
             OnPropertyChanged(NameOf(FilesCountText))
@@ -273,7 +275,7 @@ Namespace CreoPublisherApp.ViewModels
             SelectDeselectButtonText = If(_isAllSelected, "Deselect All", "Select All")
             OnPropertyChanged(NameOf(Files))
         End Sub
-
+        'Clear Filters
         Private Sub ClearFilters()
             CreatedDateStart = Nothing
             CreatedDateEnd = Nothing
@@ -282,21 +284,21 @@ Namespace CreoPublisherApp.ViewModels
             SearchText = String.Empty
             RefreshFilter()
         End Sub
-
+        'Select all
         Private Sub SelectAllFiles()
             For Each f As FileItemModel In _filteredFilesView
                 f.IsSelected = True
             Next
             OnPropertyChanged(NameOf(Files))
         End Sub
-
+        'Deselect All
         Private Sub DeselectAllFiles()
             For Each f As FileItemModel In _filteredFilesView
                 f.IsSelected = False
             Next
             OnPropertyChanged(NameOf(Files))
         End Sub
-
+        'Invert Selection
         Private Sub InvertSelectionFiles()
             For Each f As FileItemModel In _filteredFilesView
                 f.IsSelected = Not f.IsSelected
@@ -305,7 +307,7 @@ Namespace CreoPublisherApp.ViewModels
         End Sub
 
         ' Publishing
-
+        'Method to publish the selected creo files from folder/files.
         Private Sub PublishFiles()
             Dim selectedFiles = _files.Where(Function(f) f.IsSelected).ToList()
             If selectedFiles.Count = 0 Then
@@ -318,9 +320,68 @@ Namespace CreoPublisherApp.ViewModels
                 Log &= "Please select an output folder before publishing." & Environment.NewLine
                 Return
             End If
+            ' It checks for the filename duplication conflicts and throws error
+            Dim overwriteAll As Boolean? = Nothing
+            Dim conflictFiles As New List(Of String)
+            Dim filesToExport As New List(Of FileItemModel)
 
-            Log &= $"Starting Creo launch and export for {selectedFiles.Count} files..." & Environment.NewLine
+            For Each file In selectedFiles
+                Dim pdfName As String = If(String.IsNullOrWhiteSpace(file.CustomPdfName),
+                               Path.GetFileNameWithoutExtension(file.FileName),
+                               Path.GetFileNameWithoutExtension(file.CustomPdfName))
+                Dim pdfPath As String = Path.Combine(OutputPath, pdfName & ".pdf")
 
+                If System.IO.File.Exists(pdfPath) Then
+                    If overwriteAll Is Nothing Then
+                        Dim dlg As New FileConflictDialog(pdfName & ".pdf")
+                        dlg.Owner = Application.Current.MainWindow
+                        dlg.ShowDialog()
+                        'Select case based on the user selection the skipping of files takes place
+                        Select Case dlg.UserChoice
+                            Case FileConflictDialog.ConflictResult.Yes
+                                filesToExport.Add(file) ' Add only this one
+                            Case FileConflictDialog.ConflictResult.No
+                                file.Status = "Error: File exists, not overwritten."
+                                conflictFiles.Add(pdfName & ".pdf")
+                                Continue For
+                            Case FileConflictDialog.ConflictResult.YesToAll
+                                overwriteAll = True
+                                filesToExport.Add(file)
+                            Case FileConflictDialog.ConflictResult.NoToAll
+                                overwriteAll = False
+                                file.Status = "Error: File exists, not overwritten."
+                                conflictFiles.Add(pdfName & ".pdf")
+                                Continue For
+                        End Select
+                        'If the user wants to overwrite all the files
+                    ElseIf overwriteAll = True Then
+                        filesToExport.Add(file)
+                    Else
+                        file.Status = "Error: File exists, not overwritten."
+                        conflictFiles.Add(pdfName & ".pdf")
+                        Continue For
+                    End If
+                Else
+                    filesToExport.Add(file)
+                End If
+            Next
+            'It the user skips any files then it will show skipped files in the messagebox
+            If conflictFiles.Any() Then
+                MessageBox.Show("The following files were skipped due to overwrite being declined:" & vbCrLf &
+        String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, MessageBoxImage.Warning)
+                Log &= "Skipped files: " & String.Join(", ", conflictFiles) & vbCrLf
+            End If
+
+            If filesToExport.Count = 0 Then
+                Log &= "No files to publish conflicting filenames." & vbCrLf
+                Return
+            End If
+
+            'Log &= $"Starting Creo launch and export for {selectedFiles.Count} files..." & Environment.NewLine
+            'Command to export only selected files.
+            Log &= $"Starting Creo launch and export for {filesToExport.Count} files..." & Environment.NewLine
+
+            'Opening the working directory and creo executable path
             Dim workingDir = Environment.CurrentDirectory
             Dim savedCreoPath = My.Settings.CreoPath
             If String.IsNullOrEmpty(savedCreoPath) OrElse Not File.Exists(savedCreoPath) Then
@@ -330,13 +391,13 @@ Namespace CreoPublisherApp.ViewModels
             End If
 
             Dim launchSuccess = _openProe.RunProeWithPath(savedCreoPath, workingDir)
-
+            'If creo launch fails.
             If Not launchSuccess Then
                 MessageBox.Show("Failed to launch Creo")
                 Log &= "Failed to launch Creo." & Environment.NewLine
                 Return
             End If
-
+            'If initiliaze creo session is failed.
             CreoSessionManager.Instance.InitializeCreoSession()
             If CreoSessionManager.Instance.Session Is Nothing Then
                 MessageBox.Show("Failed to initialize Creo session")
@@ -347,19 +408,21 @@ Namespace CreoPublisherApp.ViewModels
             _proeCommonFuncs.setConfigOption("display_planes", "no")
             _proeCommonFuncs.setConfigOption("display_axes", "no")
             _proeCommonFuncs.setConfigOption("display_coord_sys", "no")
-            _proeCommonFuncs.ExportAllDrawingsAsPDF(selectedFiles, OutputPath)
+            '_proeCommonFuncs.ExportAllDrawingsAsPDF(selectedFiles, OutputPath)
+            _proeCommonFuncs.ExportAllDrawingsAsPDF(filesToExport, OutputPath)
 
+            'After exporting all the selected files and publishing.
             For Each file In selectedFiles
                 OnPropertyChanged(NameOf(Files))
             Next
             Log &= "Publishing complete." & Environment.NewLine
         End Sub
 
-        ' Open Settings window modal dialog
+        ' Open Settings window dialog box which contains creo ex. path
         Private Sub OpenSettingsWindow()
-            Dim settingsWin As New SettingsWindow()
-            settingsWin.Owner = System.Windows.Application.Current.MainWindow
-            settingsWin.ShowDialog()
+            Dim settingsWindow As New SettingsWindow()
+            settingsWindow.DataContext = New SettingsWindowViewModel()
+            settingsWindow.ShowDialog()
         End Sub
 
         ' INotifyPropertyChanged implementation

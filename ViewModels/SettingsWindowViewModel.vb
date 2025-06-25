@@ -1,15 +1,15 @@
-﻿Imports System.IO
-Imports System.ComponentModel
+﻿Imports System.ComponentModel
+Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Windows
 Imports System.Windows.Input
+Imports Microsoft.Win32
 
 Public Class SettingsWindowViewModel
     Implements INotifyPropertyChanged
 
     Private _creoPath As String
-    Private _originalCreoPath As String ' To revert on cancel
-    Private _isEditing As Boolean = False
+    Private _originalCreoPath As String
 
     Public Property CreoPath As String
         Get
@@ -23,86 +23,63 @@ Public Class SettingsWindowViewModel
         End Set
     End Property
 
-    Public Property IsEditing As Boolean
-        Get
-            Return _isEditing
-        End Get
-        Set(value As Boolean)
-            If _isEditing <> value Then
-                _isEditing = value
-                OnPropertyChanged()
-                OnPropertyChanged(NameOf(NotIsEditing))
-                ' Raise CanExecuteChanged for commands relying on IsEditing
-                CType(EditCommand, RelayCommand).RaiseCanExecuteChanged()
-                CType(SaveCommand, RelayCommand).RaiseCanExecuteChanged()
-                CType(CancelCommand, RelayCommand).RaiseCanExecuteChanged()
-                CType(ConfirmCommand, RelayCommand).RaiseCanExecuteChanged()
-            End If
-        End Set
-    End Property
-
-    Public ReadOnly Property NotIsEditing As Boolean
-        Get
-            Return Not IsEditing
-        End Get
-    End Property
-
-    ' Commands
-    Public Property EditCommand As ICommand
+    Public Property BrowseCommand As ICommand
     Public Property SaveCommand As ICommand
     Public Property CancelCommand As ICommand
     Public Property ConfirmCommand As ICommand
 
-    ' Event to notify the view to close
     Public Event RequestClose As Action
 
     Public Sub New()
         _creoPath = My.Settings.CreoPath
         _originalCreoPath = _creoPath
 
-        EditCommand = New RelayCommand(AddressOf Edit, Function() Not IsEditing)
-        SaveCommand = New RelayCommand(AddressOf Save, Function() IsEditing)
-        CancelCommand = New RelayCommand(AddressOf Cancel, Function() IsEditing)
-        ConfirmCommand = New RelayCommand(AddressOf Confirm, Function() Not IsEditing)
+        BrowseCommand = New RelayCommand(AddressOf Browse)
+        SaveCommand = New RelayCommand(AddressOf Save)
+        CancelCommand = New RelayCommand(AddressOf Cancel)
+        ConfirmCommand = New RelayCommand(AddressOf Confirm)
     End Sub
 
-    Private Sub Edit()
-        _originalCreoPath = CreoPath ' Save current path to revert if cancel
-        IsEditing = True
+    Private Sub Browse()
+        Dim dlg As New OpenFileDialog()
+        dlg.Filter = "Creo Executable (parametric.exe)|parametric.exe"
+        dlg.Title = "Select Creo parametric.exe"
+        dlg.InitialDirectory = "C:\Program Files\PTC"
+        If dlg.ShowDialog() = True Then
+            CreoPath = dlg.FileName
+        End If
     End Sub
 
     Private Sub Save()
-        If Not File.Exists(CreoPath) Then
-            MessageBox.Show("Invalid path. Please enter a valid parametric.exe path.", "Error", MessageBoxButton.OK, MessageBoxImage.Error)
+        If Not File.Exists(CreoPath) OrElse Not CreoPath.ToLower().EndsWith("parametric.exe") Then
+            MessageBox.Show("Invalid file. Please select a valid parametric.exe.", "Error", MessageBoxButton.OK, MessageBoxImage.Error)
             Return
         End If
 
-        ' Save to settings
         My.Settings.CreoPath = CreoPath
         My.Settings.Save()
-
-        IsEditing = False
+        MessageBox.Show("The parametric.exe path is updated.")
+        _originalCreoPath = CreoPath
     End Sub
 
     Private Sub Cancel()
-        ' Revert changes
         CreoPath = _originalCreoPath
-        IsEditing = False
-    End Sub
-
-    Private Sub Confirm()
-        ' Confirm only allowed when not editing, save path to settings in case
-        My.Settings.CreoPath = CreoPath
-        My.Settings.Save()
-
-        ' Request the view (window) to close
         RaiseEvent RequestClose()
     End Sub
 
-    ' INotifyPropertyChanged implementation
-    Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
-    Protected Sub OnPropertyChanged(<CallerMemberName> Optional prop As String = "")
-        RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(prop))
+    Private Sub Confirm()
+        If Not File.Exists(CreoPath) OrElse Not CreoPath.ToLower().EndsWith("parametric.exe") Then
+            MessageBox.Show("Invalid file. Please select a valid parametric.exe.", "Error", MessageBoxButton.OK, MessageBoxImage.Error)
+            Return
+        End If
+
+        My.Settings.CreoPath = CreoPath
+        My.Settings.Save()
+        RaiseEvent RequestClose()
     End Sub
 
+    Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
+    Protected Sub OnPropertyChanged(<CallerMemberName> Optional name As String = "")
+        RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(name))
+    End Sub
 End Class

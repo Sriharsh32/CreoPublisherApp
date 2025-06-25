@@ -2,20 +2,14 @@
 
 Namespace CreoPublisherApp
 
-    Partial Public Class SettingsWindow
-        Inherits Window
-
-        Private ReadOnly _vm As SettingsWindowViewModel
-
-        Public Sub New()
-            InitializeComponent()
-
-            _vm = New SettingsWindowViewModel()
-            Me.DataContext = _vm
-
-            AddHandler _vm.RequestClose, Sub() Me.Close()
+    Class SettingsWindow
+        Private Sub SettingsWindow_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+            Dim vm = TryCast(DataContext, SettingsWindowViewModel)
+            If vm IsNot Nothing Then
+                AddHandler vm.RequestClose, Sub() Me.Close()
+            End If
         End Sub
-
     End Class
+
 
 End Namespace
