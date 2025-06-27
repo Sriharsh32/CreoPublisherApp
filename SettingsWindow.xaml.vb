@@ -9,6 +9,8 @@ Namespace CreoPublisherApp
                 AddHandler vm.RequestClose, Sub() Me.Close()
             End If
         End Sub
+
+
     End Class
 
 

@@ -41,6 +41,7 @@ Namespace CreoPublisherApp.ViewModels
             _filteredFilesView = CollectionViewSource.GetDefaultView(_files)
             _filteredFilesView.Filter = AddressOf FilterFiles
 
+
             ' Commands
             BrowseFolderCommand = New RelayCommand(AddressOf BrowseFolder)
             BrowseFilesCommand = New RelayCommand(AddressOf BrowseFiles)
@@ -180,6 +181,7 @@ Namespace CreoPublisherApp.ViewModels
                 End If
             End Set
         End Property
+
 
         ' End of properties 
 

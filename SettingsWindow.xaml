@@ -2,114 +2,138 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Creo Executable Settings"
-        Height="200" Width="600"
+        Height="300" Width="700"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
+        Background="#f5f5f5"
+        FontFamily="Segoe UI"
+        FontSize="14"
         Loaded="SettingsWindow_Loaded">
 
-    <Grid Margin="20">
+    <!-- Global ToolTip Style -->
+    <Window.Resources>
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="#333"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush" Value="Gray"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HasDropShadow" Value="True"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="25">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <!-- Header -->
             <RowDefinition Height="Auto"/>
+            <!-- Label -->
             <RowDefinition Height="Auto"/>
+            <!-- Browse -->
+            <RowDefinition Height="Auto"/>
+            <!-- Open PDFs Toggle -->
+            <RowDefinition Height="*" />
+            <!-- Spacer -->
+            <RowDefinition Height="Auto"/>
+            <!-- Buttons -->
         </Grid.RowDefinitions>
 
         <!-- Header -->
         <TextBlock Grid.Row="0"
-                   Text="Select the full path to parametric.exe:"
+                   Text="Configure Creo Path"
+                   FontSize="20"
                    FontWeight="Bold"
-                   FontSize="14"
-                   Margin="0,0,0,8"
-                   ToolTipService.ShowDuration="6000">
-        </TextBlock>
+                   Foreground="#2c3e50"
+                   Margin="0,0,0,20"/>
 
-        <!-- Path + Browse -->
-        <DockPanel Grid.Row="1" LastChildFill="True">
-            <TextBox Text="{Binding CreoPath, UpdateSourceTrigger=PropertyChanged}" 
+        <!-- Label -->
+        <TextBlock Grid.Row="1"
+                   Text="Full path to parametric.exe:"
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,8"
+                   Foreground="#333"/>
+
+        <!-- Path + Browse Button -->
+        <Grid Grid.Row="2" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Text="{Binding CreoPath, UpdateSourceTrigger=PropertyChanged}"
                      IsReadOnly="True"
                      FontSize="14"
-                     Padding="5"
-                     Margin="0,0,10,0">
+                     Padding="6"
+                     Grid.Column="0"
+                     Margin="0,0,10,0"
+                     Background="White"
+                     BorderBrush="#ccc"
+                     BorderThickness="1">
                 <TextBox.ToolTip>
-                    <ToolTip Background="#333"
-                             Foreground="White"
-                             Padding="8"
-                             FontSize="13"
-                             BorderBrush="Gray"
-                             BorderThickness="1"
-                             HasDropShadow="True">
-                        Shows the current Creo executable path. Click "Browse..." to update it.
-                    </ToolTip>
+                    Current Creo executable path. Click 'Browse...' to change.
                 </TextBox.ToolTip>
             </TextBox>
 
             <Button Content="Browse..."
                     Width="100"
-                    Command="{Binding BrowseCommand}">
+                    Grid.Column="1"
+                    Command="{Binding BrowseCommand}"
+                    Padding="4"
+                    Background="#3498db"
+                    Foreground="White"
+                    BorderBrush="#2980b9"
+                    BorderThickness="1"
+                    Cursor="Hand">
                 <Button.ToolTip>
-                    <ToolTip Background="#333"
-                             Foreground="White"
-                             Padding="8"
-                             FontSize="13"
-                             BorderBrush="Gray"
-                             BorderThickness="1"
-                             HasDropShadow="True">
-                        Browse your file system to locate parametric.exe.
-                    </ToolTip>
+                    Browse and select parametric.exe from your system.
                 </Button.ToolTip>
             </Button>
-        </DockPanel>
+        </Grid>
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="5"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,10,0,0">
 
-        <!-- Buttons -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
             <Button Content="Save"
                     Width="80"
-                    Margin="5,0"
-                    Command="{Binding SaveCommand}">
+                    Margin="0,0,10,0"
+                    Command="{Binding SaveCommand}"
+                    Background="#27ae60"
+                    Foreground="White"
+                    BorderBrush="#1e8449"
+                    BorderThickness="1"
+                    Cursor="Hand">
                 <Button.ToolTip>
-                    <ToolTip Background="#333"
-                             Foreground="White"
-                             Padding="8"
-                             FontSize="13"
-                             BorderBrush="Gray"
-                             BorderThickness="1"
-                             HasDropShadow="True">
-                        Save the selected Creo path without closing the window.
-                    </ToolTip>
+                    Save the path without closing this window.
                 </Button.ToolTip>
             </Button>
 
             <Button Content="Cancel"
                     Width="80"
-                    Margin="5,0"
-                    Command="{Binding CancelCommand}">
+                    Margin="0,0,10,0"
+                    Command="{Binding CancelCommand}"
+                    Background="#95a5a6"
+                    Foreground="White"
+                    BorderBrush="#7f8c8d"
+                    BorderThickness="1"
+                    Cursor="Hand">
                 <Button.ToolTip>
-                    <ToolTip Background="#333"
-                             Foreground="White"
-                             Padding="8"
-                             FontSize="13"
-                             BorderBrush="Gray"
-                             BorderThickness="1"
-                             HasDropShadow="True">
-                        Discard changes and close the window.
-                    </ToolTip>
+                    Revert changes and close this window.
                 </Button.ToolTip>
             </Button>
 
             <Button Content="OK"
                     Width="80"
-                    Margin="5,0"
-                    Command="{Binding ConfirmCommand}">
+                    Command="{Binding ConfirmCommand}"
+                    Background="#2980b9"
+                    Foreground="White"
+                    BorderBrush="#2471a3"
+                    BorderThickness="1"
+                    Cursor="Hand">
                 <Button.ToolTip>
-                    <ToolTip Background="#333"
-                             Foreground="White"
-                             Padding="8"
-                             FontSize="13"
-                             BorderBrush="Gray"
-                             BorderThickness="1"
-                             HasDropShadow="True">
-                        Save changes and close the window.
-                    </ToolTip>
+                    Save changes and close this window.
                 </Button.ToolTip>
             </Button>
         </StackPanel>

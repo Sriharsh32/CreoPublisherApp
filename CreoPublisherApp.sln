@@ -5,20 +5,28 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "CreoPublisherApp", "CreoPublisherApp.vbproj", "{3F7AAD9B-4FBC-42F9-92FD-53C5DBCD0B14}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup1", "..\Setup1\Setup1.vdproj", "{82A23954-A0D5-E4C3-5500-861FACC02964}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup2", "..\Setup2\Setup2.vdproj", "{1A50F69A-E55C-160D-6004-8021BDCB8EAA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3F7AAD9B-4FBC-42F9-92FD-53C5DBCD0B14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3F7AAD9B-4FBC-42F9-92FD-53C5DBCD0B14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F7AAD9B-4FBC-42F9-92FD-53C5DBCD0B14}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3F7AAD9B-4FBC-42F9-92FD-53C5DBCD0B14}.Debug|x86.Build.0 = Debug|Any CPU
 		{3F7AAD9B-4FBC-42F9-92FD-53C5DBCD0B14}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F7AAD9B-4FBC-42F9-92FD-53C5DBCD0B14}.Release|Any CPU.Build.0 = Release|Any CPU
-		{82A23954-A0D5-E4C3-5500-861FACC02964}.Debug|Any CPU.ActiveCfg = Debug
-		{82A23954-A0D5-E4C3-5500-861FACC02964}.Release|Any CPU.ActiveCfg = Release
+		{3F7AAD9B-4FBC-42F9-92FD-53C5DBCD0B14}.Release|x86.ActiveCfg = Release|Any CPU
+		{3F7AAD9B-4FBC-42F9-92FD-53C5DBCD0B14}.Release|x86.Build.0 = Release|Any CPU
+		{1A50F69A-E55C-160D-6004-8021BDCB8EAA}.Debug|Any CPU.ActiveCfg = Debug
+		{1A50F69A-E55C-160D-6004-8021BDCB8EAA}.Debug|x86.ActiveCfg = Debug
+		{1A50F69A-E55C-160D-6004-8021BDCB8EAA}.Release|Any CPU.ActiveCfg = Release
+		{1A50F69A-E55C-160D-6004-8021BDCB8EAA}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

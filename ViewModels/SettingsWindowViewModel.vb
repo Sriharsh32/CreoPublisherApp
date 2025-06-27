@@ -10,7 +10,6 @@ Public Class SettingsWindowViewModel
 
     Private _creoPath As String
     Private _originalCreoPath As String
-
     Public Property CreoPath As String
         Get
             Return _creoPath
@@ -22,7 +21,6 @@ Public Class SettingsWindowViewModel
             End If
         End Set
     End Property
-
     Public Property BrowseCommand As ICommand
     Public Property SaveCommand As ICommand
     Public Property CancelCommand As ICommand
@@ -33,7 +31,6 @@ Public Class SettingsWindowViewModel
     Public Sub New()
         _creoPath = My.Settings.CreoPath
         _originalCreoPath = _creoPath
-
         BrowseCommand = New RelayCommand(AddressOf Browse)
         SaveCommand = New RelayCommand(AddressOf Save)
         CancelCommand = New RelayCommand(AddressOf Cancel)

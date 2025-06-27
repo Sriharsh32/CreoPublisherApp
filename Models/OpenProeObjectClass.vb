@@ -12,7 +12,6 @@ Public Class OpenProeObjectClass
                 MessageBox.Show("Creo executable not found.")
                 Return False
             End If
-
             Environment.SetEnvironmentVariable("PROE_PATH", proeExePath, EnvironmentVariableTarget.User)
             Dim launcher As CCpfcAsyncConnection = New CCpfcAsyncConnection()
             _asyncConn = launcher.Start(proeExePath, workingDir)
