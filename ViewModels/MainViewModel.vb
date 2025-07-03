@@ -384,7 +384,7 @@ Namespace CreoPublisherApp.ViewModels
             Log &= $"Starting Creo launch and export for {filesToExport.Count} files..." & Environment.NewLine
 
             'Opening the working directory and creo executable path
-            Dim workingDir = Environment.CurrentDirectory
+            Dim workingDir = "C:\Tempp"
             Dim savedCreoPath = My.Settings.CreoPath
             If String.IsNullOrEmpty(savedCreoPath) OrElse Not File.Exists(savedCreoPath) Then
                 MessageBox.Show("Invalid or missing Creo executable path. Please set it in Settings.")
@@ -412,7 +412,7 @@ Namespace CreoPublisherApp.ViewModels
             _proeCommonFuncs.setConfigOption("display_coord_sys", "no")
             '_proeCommonFuncs.ExportAllDrawingsAsPDF(selectedFiles, OutputPath)
             _proeCommonFuncs.ExportAllDrawingsAsPDF(filesToExport, OutputPath)
-
+            _openProe.KillCreO()
             'After exporting all the selected files and publishing.
             For Each file In selectedFiles
                 OnPropertyChanged(NameOf(Files))

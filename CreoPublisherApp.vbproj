@@ -21,6 +21,18 @@
       <Isolated>false</Isolated>
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </COMReference>
+    <COMReference Include="{37153b71-f391-4cd1-8f38-90ad05cd25dc}">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>2</VersionMinor>
+      <VersionMajor>2</VersionMajor>
+      <Guid>37153b71-f391-4cd1-8f38-90ad05cd25dc</Guid>
+    </COMReference>
+    <COMReference Include="{6c7794f4-8cbd-485a-bccc-514930bd42de}">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>2</VersionMinor>
+      <VersionMajor>2</VersionMajor>
+      <Guid>6c7794f4-8cbd-485a-bccc-514930bd42de</Guid>
+    </COMReference>
   </ItemGroup>
 
   <ItemGroup>

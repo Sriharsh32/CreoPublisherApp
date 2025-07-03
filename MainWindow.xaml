@@ -3,172 +3,153 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:CreoPublisherApp"
         Title="Creo PDF Batch Publisher" Height="720" Width="960"
-        WindowStartupLocation="CenterScreen">
-
+        WindowStartupLocation="CenterScreen"
+        MinWidth="800" MinHeight="600">
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Top bar -->
             <RowDefinition Height="Auto"/>
-            <!-- Input folder -->
             <RowDefinition Height="Auto"/>
-            <!-- Browse files -->
             <RowDefinition Height="Auto"/>
-            <!-- Output folder -->
             <RowDefinition Height="Auto"/>
-            <!-- Filters -->
-            <RowDefinition Height="*"/>
-            <!-- DataGrid -->
-            <RowDefinition Height="Auto"/>
-            <!-- Buttons -->
+            <RowDefinition Height="*" />
             <RowDefinition Height="120"/>
-            <!-- Log -->
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Top bar with Settings icon -->
+        <!-- Top bar -->
         <DockPanel Grid.Row="0" Margin="0,0,0,10">
-            <Button Width="35"
-        Height="35"
-        HorizontalAlignment="Right"
-        Command="{Binding OpenSettingsWindowCommand}"
-        DockPanel.Dock="Right">
+            <Button Width="35" Height="35"
+                    HorizontalAlignment="Right"
+                    Command="{Binding OpenSettingsWindowCommand}"
+                    DockPanel.Dock="Right">
                 <Button.ToolTip>
-                    <ToolTip Background="#333"
-                 Foreground="White"
-                 Padding="8"
-                 FontSize="13"
-                 BorderBrush="Gray"
-                 BorderThickness="1"
-                 HasDropShadow="True">
+                    <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
                         Open export and application settings.
                     </ToolTip>
                 </Button.ToolTip>
                 <Image Source="/Resources/gear.png" Stretch="Uniform"/>
             </Button>
-
         </DockPanel>
 
-        <!-- Input folder -->
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
-            <Button Content="Browse Folder"
-        Command="{Binding BrowseFolderCommand}"
-        Width="130"
-        Margin="0,0,10,0"
-        Background="SteelBlue"
-        Foreground="White">
+        <!-- Input Folder -->
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Content="Browse Folder" Command="{Binding BrowseFolderCommand}"
+                    Width="130" Margin="0,0,10,0"
+                    Background="SteelBlue" Foreground="White"
+                    Grid.Column="0">
                 <Button.ToolTip>
-                    <ToolTip Background="#333"
-                 Foreground="White"
-                 Padding="8"
-                 FontSize="13"
-                 BorderBrush="Gray"
-                 BorderThickness="1"
-                 HasDropShadow="True">
+                    <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
                         Select a folder containing Creo drawing files (.drw) for batch publishing.
                     </ToolTip>
                 </Button.ToolTip>
             </Button>
-
-            <TextBox Text="{Binding InputPath}" IsReadOnly="True" Width="760" Height="25" VerticalContentAlignment="Center"/>
-        </StackPanel>
+            <TextBox Text="{Binding InputPath}" IsReadOnly="True" Height="25" VerticalContentAlignment="Center"
+                     Grid.Column="1" HorizontalAlignment="Stretch"/>
+        </Grid>
 
         <!-- Browse Files -->
-        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
-            <Button Content="Browse Files"
-        Command="{Binding BrowseFilesCommand}"
-        Width="130"
-        Margin="0,0,10,0"
-        Background="SteelBlue"
-        Foreground="White">
+        <Grid Grid.Row="2" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Content="Browse Files" Command="{Binding BrowseFilesCommand}"
+                    Width="130" Margin="0,0,10,0"
+                    Background="SteelBlue" Foreground="White"
+                    Grid.Column="0">
                 <Button.ToolTip>
-                    <ToolTip Background="#333"
-                 Foreground="White"
-                 Padding="8"
-                 FontSize="13"
-                 BorderBrush="Gray"
-                 BorderThickness="1"
-                 HasDropShadow="True">
+                    <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
                         Select one or more Creo drawing files (.drw) for batch publishing.
                     </ToolTip>
                 </Button.ToolTip>
             </Button>
-
-            <TextBox Text="{Binding FilesCountText, Mode=OneWay}" IsReadOnly="True" Width="760" Height="25" VerticalContentAlignment="Center"/>
-        </StackPanel>
+            <TextBox Text="{Binding FilesCountText, Mode=OneWay}" IsReadOnly="True" Height="25" VerticalContentAlignment="Center"
+                     Grid.Column="1" HorizontalAlignment="Stretch"/>
+        </Grid>
 
         <!-- Output Folder -->
-        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,0,0,8">
-            <Button Content="Select Output Folder"
-        Command="{Binding BrowseOutputFolderCommand}"
-        Width="130"
-        Margin="0,0,10,0"
-        Background="SteelBlue"
-        Foreground="White">
+        <Grid Grid.Row="3" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Content="Select Output Folder" Command="{Binding BrowseOutputFolderCommand}"
+                    Width="130" Margin="0,0,10,0"
+                    Background="SteelBlue" Foreground="White"
+                    Grid.Column="0">
                 <Button.ToolTip>
-                    <ToolTip Background="#333"
-                 Foreground="White"
-                 Padding="8"
-                 FontSize="13"
-                 BorderBrush="Gray"
-                 BorderThickness="1"
-                 HasDropShadow="True">
+                    <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
                         Choose the folder where the exported PDF files will be saved.
                     </ToolTip>
                 </Button.ToolTip>
             </Button>
+            <TextBox Text="{Binding OutputPath}" IsReadOnly="True" Height="25" VerticalContentAlignment="Center"
+                     Grid.Column="1" HorizontalAlignment="Stretch"/>
+        </Grid>
 
-            <TextBox Text="{Binding OutputPath}" IsReadOnly="True" Width="760" Height="25" VerticalContentAlignment="Center"/>
-        </StackPanel>
+        <!-- Responsive Filters -->
+        <Grid Grid.Row="4" Margin="0,0,0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <!-- Filters: Created/Modified Dates and Search -->
-        <StackPanel Orientation="Horizontal" Grid.Row="4" Margin="0,0,0,10" HorizontalAlignment="Left">
-            <StackPanel Orientation="Vertical" Margin="0,0,10,0">
+            <!-- Created Date From -->
+            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,0">
                 <TextBlock Text="Created Date From"/>
-                <DatePicker SelectedDate="{Binding CreatedDateStart}" Width="140"/>
+                <DatePicker SelectedDate="{Binding CreatedDateStart}" />
             </StackPanel>
-            <StackPanel Orientation="Vertical" Margin="0,0,10,0">
+
+            <!-- Created Date To -->
+            <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
                 <TextBlock Text="To"/>
-                <DatePicker SelectedDate="{Binding CreatedDateEnd}" Width="140"/>
+                <DatePicker SelectedDate="{Binding CreatedDateEnd}" />
             </StackPanel>
-            <StackPanel Orientation="Vertical" Margin="0,0,10,0">
+
+            <!-- Modified Date From -->
+            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,10,0">
                 <TextBlock Text="Modified Date From"/>
-                <DatePicker SelectedDate="{Binding ModifiedDateStart}" Width="140"/>
+                <DatePicker SelectedDate="{Binding ModifiedDateStart}" />
             </StackPanel>
-            <StackPanel Orientation="Vertical" Margin="0,0,10,10">
+
+            <!-- Modified Date To -->
+            <StackPanel Grid.Row="0" Grid.Column="3" Margin="0,0,10,0">
                 <TextBlock Text="To"/>
-                <DatePicker SelectedDate="{Binding ModifiedDateEnd}" Width="140"/>
+                <DatePicker SelectedDate="{Binding ModifiedDateEnd}" />
             </StackPanel>
-            <StackPanel Orientation="Vertical" Margin="10,0,10,0">
-                <TextBlock Text="Search File Name"/>
-                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="200" Height="25"/>
-            </StackPanel>
-            <StackPanel Orientation="Vertical" VerticalAlignment="Bottom">
-                <Button Content="Clear Filter"
-        Command="{Binding ClearFiltersCommand}"
-        Width="120"
-        Height="30"
-        Background="IndianRed"
-        Foreground="White">
-                    <Button.ToolTip>
-                        <ToolTip Background="#333"
-                 Foreground="White"
-                 Padding="8"
-                 FontSize="13"
-                 BorderBrush="Gray"
-                 BorderThickness="1"
-                 HasDropShadow="True">
-                            Clears all active filters and shows the full file list.
-                        </ToolTip>
-                    </Button.ToolTip>
-                </Button>
 
-            </StackPanel>
-        </StackPanel>
+            <!-- Search & Clear Filter -->
+            <Grid Grid.Row="1" Grid.ColumnSpan="4" Margin="0,10,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-        <!-- DataGrid with file list -->
+                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                    <TextBlock Text="Search File Name"/>
+                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Height="25"/>
+                </StackPanel>
 
+                <Button Grid.Column="1" Content="Clear Filter" Command="{Binding ClearFiltersCommand}" Width="120" Height="30"
+                        VerticalAlignment="Bottom" Background="IndianRed" Foreground="White"/>
+            </Grid>
+        </Grid>
+
+        <!-- DataGrid -->
         <DataGrid Grid.Row="5" ItemsSource="{Binding FilteredFiles}" AutoGenerateColumns="False" CanUserAddRows="False"
-                  Height="300" Margin="0,0,0,10" IsReadOnly="False" SelectionChanged="DataGrid_SelectionChanged">
+                  Margin="0,0,0,10" IsReadOnly="False" SelectionChanged="DataGrid_SelectionChanged"
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <DataGrid.Columns>
                 <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, Mode=TwoWay}" Width="60"/>
                 <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>
@@ -180,87 +161,17 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Select/Deselect Buttons -->
-        <StackPanel Orientation="Horizontal" Grid.Row="6" HorizontalAlignment="Right" Margin="0,0,0,8">
-            <Button Content="Select All"
-            Command="{Binding SelectAllCommand}"
-            Width="120"
-            Background="DarkSlateGray"
-            Foreground="White"
-            Margin="0,0,8,0">
-                <Button.ToolTip>
-                    <ToolTip Background="#333"
-                     Foreground="White"
-                     Padding="8"
-                     FontSize="13"
-                     BorderBrush="Gray"
-                     BorderThickness="1"
-                     HasDropShadow="True">
-                        Selects all drawing files listed below.
-                    </ToolTip>
-                </Button.ToolTip>
-            </Button>
-
-            <Button Content="Deselect All"
-            Command="{Binding DeselectAllCommand}"
-            Width="120"
-            Background="DarkSlateGray"
-            Foreground="White"
-            Margin="0,0,8,0">
-                <Button.ToolTip>
-                    <ToolTip Background="#333"
-                     Foreground="White"
-                     Padding="8"
-                     FontSize="13"
-                     BorderBrush="Gray"
-                     BorderThickness="1"
-                     HasDropShadow="True">
-                        Deselects all currently selected files.
-                    </ToolTip>
-                </Button.ToolTip>
-            </Button>
-
-            <Button Content="Invert Selection"
-            Command="{Binding InvertSelectionCommand}"
-            Width="140"
-            Background="DarkSlateGray"
-            Foreground="White"
-            Margin="0,0,8,0">
-                <Button.ToolTip>
-                    <ToolTip Background="#333"
-                     Foreground="White"
-                     Padding="8"
-                     FontSize="13"
-                     BorderBrush="Gray"
-                     BorderThickness="1"
-                     HasDropShadow="True">
-                        Reverses the current selection. Selected files become unselected and vice versa.
-                    </ToolTip>
-                </Button.ToolTip>
-            </Button>
-
-            <Button Content="Publish"
-            Command="{Binding PublishCommand}"
-            Width="120"
-            Background="ForestGreen"
-            Foreground="White">
-                <Button.ToolTip>
-                    <ToolTip Background="#333"
-                     Foreground="White"
-                     Padding="8"
-                     FontSize="13"
-                     BorderBrush="Gray"
-                     BorderThickness="1"
-                     HasDropShadow="True">
-                        Publish all selected drawing files to PDF.
-                    </ToolTip>
-                </Button.ToolTip>
-            </Button>
+        <!-- Buttons -->
+        <StackPanel Orientation="Horizontal" Grid.Row="6" HorizontalAlignment="Right" Margin="0,10,0,8">
+            <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="100" Height="30" Background="DarkSlateGray" Foreground="White" Margin="0,0,6,0"/>
+            <Button Content="Deselect All" Command="{Binding DeselectAllCommand}" Width="100" Height="30" Background="DarkSlateGray" Foreground="White" Margin="0,0,6,0"/>
+            <Button Content="Invert Selection" Command="{Binding InvertSelectionCommand}" Width="120" Height="30" Background="DarkSlateGray" Foreground="White" Margin="0,0,6,0"/>
+            <Button Content="Publish" Command="{Binding PublishCommand}" Width="100" Height="30" Background="ForestGreen" Foreground="White"/>
         </StackPanel>
 
-        <!-- Log Output -->
+
+        <!-- Log -->
         <TextBox Grid.Row="7" Text="{Binding Log}" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto" TextWrapping="Wrap"
-                 FontFamily="Consolas" FontSize="12"/>
+                 HorizontalScrollBarVisibility="Auto" TextWrapping="Wrap" FontFamily="Consolas" FontSize="12"/>
     </Grid>
 </Window>
