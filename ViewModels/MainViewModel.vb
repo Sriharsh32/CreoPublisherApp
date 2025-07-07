@@ -29,7 +29,6 @@ Namespace CreoPublisherApp.ViewModels
         Private _isAllSelected As Boolean = False
         Private _selectDeselectButtonText As String = "Select All"
         Private _searchText As String = String.Empty
-
         ' Creo automation classes
         Private _openProe As New OpenProeObjectClass()
         Private _proeCommonFuncs As New ProECommonFunctionalites()
@@ -57,17 +56,54 @@ Namespace CreoPublisherApp.ViewModels
 
         ' Properties
 
+        'Public Property InputPath As String
+        '    Get
+        '        Return _inputPath
+        '    End Get
+        '    Set(value As String)
+        '        If _inputPath <> value Then
+        '            _inputPath = value
+        '            OnPropertyChanged()
+        '        End If
+        '    End Set
+        'End Property
         Public Property InputPath As String
             Get
                 Return _inputPath
             End Get
             Set(value As String)
                 If _inputPath <> value Then
-                    _inputPath = value
+                    Dim cleanedValue = value?.Trim().Trim(""""c)
+                    _inputPath = cleanedValue
                     OnPropertyChanged()
+
+                    If String.IsNullOrEmpty(_inputPath) Then
+                        Return
+                    End If
+
+                    ' If InputPath is set to "Multiple files selected", do not load folder
+                    If _inputPath.Equals("Multiple files selected", StringComparison.OrdinalIgnoreCase) Then
+                        Return
+                    End If
+
+                    ' If InputPath is a single file → do nothing (we already add file in AddDroppedFiles)
+                    If File.Exists(_inputPath) AndAlso Path.GetExtension(_inputPath).Equals(".drw", StringComparison.OrdinalIgnoreCase) Then
+                        Return
+                    End If
+
+                    ' If InputPath is a folder → load all .drw files from it
+                    If Directory.Exists(_inputPath) Then
+                        LoadFilesFromFolder(_inputPath)
+                    Else
+                        Log &= $"Warning: Input folder or file '{_inputPath}' does not exist or is invalid.{Environment.NewLine}"
+                        _files.Clear()
+                        UpdateFilesCountText()
+                        RefreshFilter()
+                    End If
                 End If
             End Set
         End Property
+
 
         Public Property OutputPath As String
             Get
@@ -80,7 +116,6 @@ Namespace CreoPublisherApp.ViewModels
                 End If
             End Set
         End Property
-
         Public Property SearchText As String
             Get
                 Return _searchText
@@ -227,14 +262,17 @@ Namespace CreoPublisherApp.ViewModels
                 _files.Clear()
                 For Each filePath In dlg.FileNames
                     Dim fileModel As New FileItemModel(filePath)
+                    fileModel.IsSelected = True ' ✅ Select immediately
                     AddHandler fileModel.PropertyChanged, AddressOf FileItem_PropertyChanged
                     _files.Add(fileModel)
                 Next
-                InputPath = "Multiple files selected"
+                ' Don't set InputPath, it causes folder validation warnings
                 UpdateFilesCountText()
                 RefreshFilter()
             End If
         End Sub
+
+
 
         Private Sub BrowseOutputFolder()
             Dim dialog As New VistaFolderBrowserDialog()
@@ -425,6 +463,13 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
                 OnPropertyChanged(NameOf(Files))
             Next
             Log &= "Publishing complete." & Environment.NewLine
+            ' After exporting, generate report if enabled
+
+
+            MessageBox.Show($"PDF export completed successfully for {filesToExport.Count} files!",
+                "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information)
+
+
         End Sub
 
         ' Open settings
@@ -440,6 +485,61 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
             RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
         End Sub
         ' Erase ALL models in session by closing active window first
+        'Adds files and folders dropped into the app.
+        ' Accepts .drw files and .drw files inside dropped folders (non-recursive).
+        ''' <param name="paths">Array of dropped paths (files or folders).</param>
+        Public Sub AddDroppedFiles(paths() As String)
+            Try
+                Dim droppedFolders As New List(Of String)()
+                Dim addedFilesCount As Integer = 0
+
+                Log &= $"Dropped items count: {paths.Length}{Environment.NewLine}"
+
+                For Each path As String In paths
+                    Log &= $"Dropped path: {path}{Environment.NewLine}"
+
+                    If Directory.Exists(path) Then
+                        ' Folder drop: add all .drw files inside
+                        droppedFolders.Add(path)
+                    ElseIf File.Exists(path) Then
+                        Dim extension = System.IO.Path.GetExtension(path) ' ✅ CORRECT USAGE
+                        If extension.Equals(".drw", StringComparison.OrdinalIgnoreCase) Then
+                            AddFileIfNotExists(path)
+                            addedFilesCount += 1
+                        End If
+                    End If
+                Next
+
+                ' Load .drw files from any dropped folders
+                For Each folderPath In droppedFolders
+                    Dim drwFiles = Directory.GetFiles(folderPath, "*.drw", SearchOption.TopDirectoryOnly)
+                    For Each file In drwFiles
+                        AddFileIfNotExists(file)
+                        addedFilesCount += 1
+                    Next
+                Next
+
+                RefreshFilter()
+                UpdateFilesCountText()
+                OnPropertyChanged(NameOf(Files))
+                OnPropertyChanged(NameOf(FilteredFiles))
+
+                Log &= $"Total files added from drop: {addedFilesCount}{Environment.NewLine}"
+            Catch ex As Exception
+                Log &= $"Error adding dropped files: {ex.Message}{Environment.NewLine}"
+            End Try
+        End Sub
+        ' Adds a file to the _files collection if it does not already exist.
+        ''' <param name="filePath">Full file path</param>
+        Private Sub AddFileIfNotExists(filePath As String)
+            If Not _files.Any(Function(f) f.FullPath.Equals(filePath, StringComparison.OrdinalIgnoreCase)) Then
+                Dim fi As New FileInfo(filePath)
+                Dim fileModel As New FileItemModel(filePath)
+                AddHandler fileModel.PropertyChanged, AddressOf FileItem_PropertyChanged
+                _files.Add(fileModel)
+            End If
+        End Sub
+
     End Class
 
 End Namespace

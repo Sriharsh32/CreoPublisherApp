@@ -5,7 +5,34 @@
         Title="Creo PDF Batch Publisher" Height="720" Width="960"
         WindowStartupLocation="CenterScreen"
         MinWidth="800" MinHeight="600">
-    <Grid Margin="15">
+
+    <Window.Resources>
+        <!-- Fade In Animation -->
+        <Storyboard x:Key="FadeInOverlay">
+            <DoubleAnimation Storyboard.TargetName="DragDropOverlay"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0" To="1" Duration="0:0:0.3" />
+        </Storyboard>
+
+        <!-- Fade Out Animation -->
+        <Storyboard x:Key="FadeOutOverlay">
+            <DoubleAnimation Storyboard.TargetName="DragDropOverlay"
+                             Storyboard.TargetProperty="Opacity"
+                             From="1" To="0" Duration="0:0:0.3" />
+        </Storyboard>
+
+        <!-- Pulse Animation -->
+        <Storyboard x:Key="PulseOverlay" RepeatBehavior="Forever" AutoReverse="True">
+            <DoubleAnimation Storyboard.TargetName="DragDropOverlay"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0.7" To="1" Duration="0:0:1" />
+        </Storyboard>
+    </Window.Resources>
+
+    <Grid Margin="15" AllowDrop="True"
+          DragEnter="Grid_DragEnter"
+          DragLeave="Grid_DragLeave"
+          Drop="Grid_Drop">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -13,6 +40,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="120"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -29,7 +57,6 @@
                     </ToolTip>
                 </Button.ToolTip>
                 <Image Source="pack://application:,,,/Resources/gear.png" Stretch="Uniform"/>
-
             </Button>
         </DockPanel>
 
@@ -39,18 +66,20 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Button Content="Browse Folder" Command="{Binding BrowseFolderCommand}"
-                    Width="130" Margin="0,0,10,0"
-                    Background="SteelBlue" Foreground="White"
-                    Grid.Column="0">
+            <Button Content="Browse Input Folder" Command="{Binding BrowseFolderCommand}"
+            Width="130" Margin="0,0,10,0"
+            Background="SteelBlue" Foreground="White"
+            Grid.Column="0">
                 <Button.ToolTip>
                     <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
                         Select a folder containing Creo drawing files (.drw) for batch publishing.
                     </ToolTip>
                 </Button.ToolTip>
             </Button>
-            <TextBox Text="{Binding InputPath}" IsReadOnly="True" Height="25" VerticalContentAlignment="Center"
-                     Grid.Column="1" HorizontalAlignment="Stretch"/>
+            <TextBox Text="{Binding InputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+             Height="25" VerticalContentAlignment="Center"
+             Grid.Column="1" HorizontalAlignment="Stretch"
+             ToolTip="You can also paste or type the folder path here"/>
         </Grid>
 
         <!-- Browse Files -->
@@ -80,17 +109,19 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Button Content="Select Output Folder" Command="{Binding BrowseOutputFolderCommand}"
-                    Width="130" Margin="0,0,10,0"
-                    Background="SteelBlue" Foreground="White"
-                    Grid.Column="0">
+            Width="130" Margin="0,0,10,0"
+            Background="SteelBlue" Foreground="White"
+            Grid.Column="0">
                 <Button.ToolTip>
                     <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
                         Choose the folder where the exported PDF files will be saved.
                     </ToolTip>
                 </Button.ToolTip>
             </Button>
-            <TextBox Text="{Binding OutputPath}" IsReadOnly="True" Height="25" VerticalContentAlignment="Center"
-                     Grid.Column="1" HorizontalAlignment="Stretch"/>
+            <TextBox Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+             Height="25" VerticalContentAlignment="Center"
+             Grid.Column="1" HorizontalAlignment="Stretch"
+             ToolTip="You can also paste or type the output folder path here"/>
         </Grid>
 
         <!-- Responsive Filters -->
@@ -162,17 +193,37 @@
             </DataGrid.Columns>
         </DataGrid>
 
+        <!-- Drag & Drop Instruction Button -->
+        <Button Grid.Row="6" Content="Drag and Drop Files or Folders"
+                Width="250" Height="40"
+                Background="SteelBlue" Foreground="White"
+                HorizontalAlignment="Center" Margin="0,10,0,8"
+                Click="ShowDragDropInstructions"/>
+
         <!-- Buttons -->
-        <StackPanel Orientation="Horizontal" Grid.Row="6" HorizontalAlignment="Right" Margin="0,10,0,8">
+        <StackPanel Orientation="Horizontal" Grid.Row="7" HorizontalAlignment="Right" Margin="0,10,0,8">
             <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="100" Height="30" Background="DarkSlateGray" Foreground="White" Margin="0,0,6,0"/>
             <Button Content="Deselect All" Command="{Binding DeselectAllCommand}" Width="100" Height="30" Background="DarkSlateGray" Foreground="White" Margin="0,0,6,0"/>
             <Button Content="Invert Selection" Command="{Binding InvertSelectionCommand}" Width="120" Height="30" Background="DarkSlateGray" Foreground="White" Margin="0,0,6,0"/>
             <Button Content="Publish" Command="{Binding PublishCommand}" Width="100" Height="30" Background="ForestGreen" Foreground="White"/>
         </StackPanel>
 
-
         <!-- Log -->
-        <TextBox Grid.Row="7" Text="{Binding Log}" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
+        <TextBox Grid.Row="8" Text="{Binding Log}" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
                  HorizontalScrollBarVisibility="Auto" TextWrapping="Wrap" FontFamily="Consolas" FontSize="12"/>
+
+        <!-- Drag & Drop Overlay TextBlock -->
+        <TextBlock x:Name="DragDropOverlay"
+                   Text="Drop files or folders here"
+                   FontSize="36" FontWeight="Bold"
+                   Foreground="White"
+                   Background="#AA000000"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Padding="20"
+                   TextAlignment="Center"
+                   Visibility="Collapsed"
+                   Opacity="0"
+                   Panel.ZIndex="1000" />
     </Grid>
 </Window>
