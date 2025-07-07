@@ -55,7 +55,6 @@ Public Class SettingsWindowViewModel
 
         My.Settings.CreoPath = CreoPath
         My.Settings.Save()
-        MessageBox.Show("The parametric.exe path is updated.")
         _originalCreoPath = CreoPath
     End Sub
 
@@ -68,6 +67,8 @@ Public Class SettingsWindowViewModel
         If Not File.Exists(CreoPath) OrElse Not CreoPath.ToLower().EndsWith("parametric.exe") Then
             MessageBox.Show("Invalid file. Please select a valid parametric.exe.", "Error", MessageBoxButton.OK, MessageBoxImage.Error)
             Return
+        Else
+            MessageBox.Show("Parametric path is updated.")
         End If
 
         My.Settings.CreoPath = CreoPath

@@ -1,4 +1,5 @@
 ﻿Imports pfcls
+Imports System.Windows
 
 Public Class CreoSessionManager
     Private Shared _instance As CreoSessionManager

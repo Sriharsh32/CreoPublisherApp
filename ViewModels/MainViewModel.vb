@@ -41,7 +41,6 @@ Namespace CreoPublisherApp.ViewModels
             _filteredFilesView = CollectionViewSource.GetDefaultView(_files)
             _filteredFilesView.Filter = AddressOf FilterFiles
 
-
             ' Commands
             BrowseFolderCommand = New RelayCommand(AddressOf BrowseFolder)
             BrowseFilesCommand = New RelayCommand(AddressOf BrowseFiles)
@@ -53,7 +52,6 @@ Namespace CreoPublisherApp.ViewModels
             ToggleSelectCommand = New RelayCommand(AddressOf ToggleSelectDeselect)
             ClearFiltersCommand = New RelayCommand(AddressOf ClearFilters)
 
-            ' Settings window open command
             OpenSettingsWindowCommand = New RelayCommand(AddressOf OpenSettingsWindow)
         End Sub
 
@@ -182,9 +180,6 @@ Namespace CreoPublisherApp.ViewModels
             End Set
         End Property
 
-
-        ' End of properties 
-
         ' Commands
         Public Property BrowseFolderCommand As ICommand
         Public Property BrowseFilesCommand As ICommand
@@ -215,7 +210,6 @@ Namespace CreoPublisherApp.ViewModels
         End Sub
 
         ' File loading and updating
-
         Private Sub BrowseFolder()
             Dim dialog As New VistaFolderBrowserDialog()
             If dialog.ShowDialog() = True Then
@@ -232,7 +226,9 @@ Namespace CreoPublisherApp.ViewModels
             If dlg.ShowDialog() = True Then
                 _files.Clear()
                 For Each filePath In dlg.FileNames
-                    _files.Add(New FileItemModel(filePath))
+                    Dim fileModel As New FileItemModel(filePath)
+                    AddHandler fileModel.PropertyChanged, AddressOf FileItem_PropertyChanged
+                    _files.Add(fileModel)
                 Next
                 InputPath = "Multiple files selected"
                 UpdateFilesCountText()
@@ -246,14 +242,15 @@ Namespace CreoPublisherApp.ViewModels
                 OutputPath = dialog.SelectedPath
             End If
         End Sub
-        'Method for loading files from folder
+
         Private Sub LoadFilesFromFolder(folderPath As String)
             Try
                 _files.Clear()
-                Dim filesInFolder = Directory.GetFiles(folderPath).
-                Where(Function(f) Path.GetExtension(f).ToLower() = ".drw").ToArray()
+                Dim filesInFolder = Directory.GetFiles(folderPath).Where(Function(f) Path.GetExtension(f).ToLower() = ".drw").ToArray()
                 For Each filePath In filesInFolder
-                    _files.Add(New FileItemModel(filePath))
+                    Dim fileModel As New FileItemModel(filePath)
+                    AddHandler fileModel.PropertyChanged, AddressOf FileItem_PropertyChanged
+                    _files.Add(fileModel)
                 Next
                 UpdateFilesCountText()
                 RefreshFilter()
@@ -261,23 +258,32 @@ Namespace CreoPublisherApp.ViewModels
                 Log &= $"Error loading files from folder: {ex.Message}{Environment.NewLine}"
             End Try
         End Sub
-        'Method for updating the select count if multiple files selected
+
         Private Sub UpdateFilesCountText()
-            _filesCountText = $"{_files.Count} file(s) selected"
+            Dim selectedCount = _files.Where(Function(f) f.IsSelected).Count()
+            _filesCountText = $"{selectedCount} file(s) selected"
             OnPropertyChanged(NameOf(FilesCountText))
         End Sub
 
-        ' Selection manipulation on filtered view
 
+        ' Event handler for individual file selection
+        Private Sub FileItem_PropertyChanged(sender As Object, e As PropertyChangedEventArgs)
+            If e.PropertyName = NameOf(FileItemModel.IsSelected) Then
+                UpdateFilesCountText()
+            End If
+        End Sub
+
+        ' Selection manipulation
         Private Sub ToggleSelectDeselect()
             _isAllSelected = Not _isAllSelected
             For Each f As FileItemModel In _filteredFilesView
                 f.IsSelected = _isAllSelected
             Next
+            UpdateFilesCountText()
             SelectDeselectButtonText = If(_isAllSelected, "Deselect All", "Select All")
             OnPropertyChanged(NameOf(Files))
         End Sub
-        'Clear Filters
+
         Private Sub ClearFilters()
             CreatedDateStart = Nothing
             CreatedDateEnd = Nothing
@@ -286,30 +292,31 @@ Namespace CreoPublisherApp.ViewModels
             SearchText = String.Empty
             RefreshFilter()
         End Sub
-        'Select all
+
         Private Sub SelectAllFiles()
             For Each f As FileItemModel In _filteredFilesView
                 f.IsSelected = True
             Next
+            UpdateFilesCountText()
             OnPropertyChanged(NameOf(Files))
         End Sub
-        'Deselect All
+
         Private Sub DeselectAllFiles()
             For Each f As FileItemModel In _filteredFilesView
                 f.IsSelected = False
             Next
+            UpdateFilesCountText()
             OnPropertyChanged(NameOf(Files))
         End Sub
-        'Invert Selection
+
         Private Sub InvertSelectionFiles()
             For Each f As FileItemModel In _filteredFilesView
                 f.IsSelected = Not f.IsSelected
             Next
+            UpdateFilesCountText()
             OnPropertyChanged(NameOf(Files))
         End Sub
 
-        ' Publishing
-        'Method to publish the selected creo files from folder/files.
         Private Sub PublishFiles()
             Dim selectedFiles = _files.Where(Function(f) f.IsSelected).ToList()
             If selectedFiles.Count = 0 Then
@@ -329,8 +336,8 @@ Namespace CreoPublisherApp.ViewModels
 
             For Each file In selectedFiles
                 Dim pdfName As String = If(String.IsNullOrWhiteSpace(file.CustomPdfName),
-                               Path.GetFileNameWithoutExtension(file.FileName),
-                               Path.GetFileNameWithoutExtension(file.CustomPdfName))
+                       Path.GetFileNameWithoutExtension(file.FileName),
+                       Path.GetFileNameWithoutExtension(file.CustomPdfName))
                 Dim pdfPath As String = Path.Combine(OutputPath, pdfName & ".pdf")
 
                 If System.IO.File.Exists(pdfPath) Then
@@ -370,7 +377,7 @@ Namespace CreoPublisherApp.ViewModels
             'It the user skips any files then it will show skipped files in the messagebox
             If conflictFiles.Any() Then
                 MessageBox.Show("The following files were skipped due to overwrite being declined:" & vbCrLf &
-        String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, MessageBoxImage.Warning)
+String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, MessageBoxImage.Warning)
                 Log &= "Skipped files: " & String.Join(", ", conflictFiles) & vbCrLf
             End If
 
@@ -384,7 +391,7 @@ Namespace CreoPublisherApp.ViewModels
             Log &= $"Starting Creo launch and export for {filesToExport.Count} files..." & Environment.NewLine
 
             'Opening the working directory and creo executable path
-            Dim workingDir = "C:\Tempp"
+            Dim workingDir = "C:\GAB\TempDir"
             Dim savedCreoPath = My.Settings.CreoPath
             If String.IsNullOrEmpty(savedCreoPath) OrElse Not File.Exists(savedCreoPath) Then
                 MessageBox.Show("Invalid or missing Creo executable path. Please set it in Settings.")
@@ -420,7 +427,7 @@ Namespace CreoPublisherApp.ViewModels
             Log &= "Publishing complete." & Environment.NewLine
         End Sub
 
-        ' Open Settings window dialog box which contains creo ex. path
+        ' Open settings
         Private Sub OpenSettingsWindow()
             Dim settingsWindow As New SettingsWindow()
             settingsWindow.DataContext = New SettingsWindowViewModel()
@@ -432,7 +439,7 @@ Namespace CreoPublisherApp.ViewModels
         Protected Sub OnPropertyChanged(<CallerMemberName> Optional propertyName As String = Nothing)
             RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(propertyName))
         End Sub
-
+        ' Erase ALL models in session by closing active window first
     End Class
 
 End Namespace

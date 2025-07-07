@@ -36,20 +36,25 @@ Public Class ProECommonFunctionalites
                 Dim customName = If(String.IsNullOrWhiteSpace(item.CustomPdfName), modelName, item.CustomPdfName)
                 Dim pdfPath = Path.Combine(outputFolder, customName & ".pdf")
                 pdfInstr.FilePath = pdfPath
-                ' Exporting the pdf from creo without opening the pdf in the default browser
-                Dim pdfOptions As IpfcPDFOptions
-                pdfOptions = New CpfcPDFOptions
+
+                ' PDF options - don't launch PDF viewer
+                Dim pdfOptions As IpfcPDFOptions = New CpfcPDFOptions()
                 Dim pdfOpt1 As New CCpfcPDFOption
-                Dim Opt1 As IpfcPDFOption
-                Opt1 = pdfOpt1.Create()
-                Opt1.OptionType = EpfcPDFOptionType.EpfcPDFOPT_LAUNCH_VIEWER
+                Dim opt1 As IpfcPDFOption = pdfOpt1.Create()
+                opt1.OptionType = EpfcPDFOptionType.EpfcPDFOPT_LAUNCH_VIEWER
                 Dim arg1 As New CMpfcArgument
-                Opt1.OptionValue = arg1.CreateBoolArgValue(False)
-                pdfOptions.Append(Opt1)
+                opt1.OptionValue = arg1.CreateBoolArgValue(False)
+                pdfOptions.Append(opt1)
                 pdfInstr.Options = pdfOptions
                 model.Display()
                 model.Export(pdfPath, pdfInstr)
-
+                ' Close the active window after export 
+                Dim activeWindow As IpfcWindow = session.CurrentWindow
+                If activeWindow IsNot Nothing Then
+                    activeWindow.Close()
+                End If
+                ' Clear undisplayed models to free up resources
+                session.EraseUndisplayedModels()
                 item.Status = "Success"
             Catch ex As Exception
                 item.Status = "Error: " & ex.Message

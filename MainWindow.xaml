@@ -28,7 +28,8 @@
                         Open export and application settings.
                     </ToolTip>
                 </Button.ToolTip>
-                <Image Source="/Resources/gear.png" Stretch="Uniform"/>
+                <Image Source="pack://application:,,,/Resources/gear.png" Stretch="Uniform"/>
+
             </Button>
         </DockPanel>
 
@@ -151,7 +152,7 @@
                   Margin="0,0,0,10" IsReadOnly="False" SelectionChanged="DataGrid_SelectionChanged"
                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <DataGrid.Columns>
-                <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, Mode=TwoWay}" Width="60"/>
+                <DataGridCheckBoxColumn Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Header="Select" Width="60" />
                 <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>
                 <DataGridTextColumn Header="Rename PDF(Double Click)" Binding="{Binding CustomPdfName, Mode=TwoWay}" Width="*"/>
                 <DataGridTextColumn Header="Created Date" Binding="{Binding CreatedDate}" Width="140"/>

@@ -8,7 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\background.jpeg" />
     <None Remove="Resources\gear.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\background.jpeg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
