@@ -1,4 +1,5 @@
-﻿Imports System.Windows
+﻿Imports System.IO
+Imports System.Windows
 Imports System.Windows.Controls
 Imports System.Windows.Input
 Imports System.Windows.Media.Animation
@@ -44,17 +45,30 @@ Namespace CreoPublisherApp
             If e.Data.GetDataPresent(DataFormats.FileDrop) Then
                 Dim droppedItems() As String = CType(e.Data.GetData(DataFormats.FileDrop), String())
                 If droppedItems IsNot Nothing AndAlso droppedItems.Length > 0 Then
-                    viewModel.AddDroppedFiles(droppedItems)
 
-                    ' Set InputPath to folder of first dropped file
-                    Dim firstFolder As String = System.IO.Path.GetDirectoryName(droppedItems(0))
-                    If Not String.IsNullOrEmpty(firstFolder) Then
-                        viewModel.InputPath = firstFolder
+                    ' Determine whether the drop is files or folders
+                    Dim firstItem As String = droppedItems(0)
+
+                    If Directory.Exists(firstItem) Then
+                        ' User dropped a folder → load the folder directly
+                        viewModel.InputPath = firstItem
+                    ElseIf File.Exists(firstItem) Then
+                        ' User dropped files → add them but do NOT reset InputPath to the folder,
+                        ' to avoid adding all .drw files from that folder
+                        viewModel.AddDroppedFiles(droppedItems)
+
+                        ' Update UI indication for multiple files selected if applicable
+                        If droppedItems.Length > 1 Then
+                            viewModel.InputPath = "Multiple files selected"
+                        Else
+                            ' Do NOT set InputPath to folder; prevents unintended folder scan
+                        End If
                     End If
                 End If
             End If
             e.Handled = True
         End Sub
+
 
         Private Sub ShowDragDropOverlay()
             DragDropOverlay.Visibility = Visibility.Visible

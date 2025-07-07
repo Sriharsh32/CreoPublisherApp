@@ -491,27 +491,40 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
         Public Sub AddDroppedFiles(paths() As String)
             Try
                 Dim droppedFolders As New List(Of String)()
+                Dim droppedFiles As New List(Of String)()
                 Dim addedFilesCount As Integer = 0
 
-                Log &= $"Dropped items count: {paths.Length}{Environment.NewLine}"
+                'Log &= $"Dropped items count: {paths.Length}{Environment.NewLine}"
 
+                ' Separate files and folders first
                 For Each path As String In paths
-                    Log &= $"Dropped path: {path}{Environment.NewLine}"
+                    Log &= $"Dropped Items From : {path}{Environment.NewLine}"
 
                     If Directory.Exists(path) Then
-                        ' Folder drop: add all .drw files inside
                         droppedFolders.Add(path)
                     ElseIf File.Exists(path) Then
-                        Dim extension = System.IO.Path.GetExtension(path) ' ✅ CORRECT USAGE
-                        If extension.Equals(".drw", StringComparison.OrdinalIgnoreCase) Then
-                            AddFileIfNotExists(path)
-                            addedFilesCount += 1
-                        End If
+                        droppedFiles.Add(path)
                     End If
                 Next
 
-                ' Load .drw files from any dropped folders
+                ' Add individual files first
+                For Each filePath In droppedFiles
+                    Dim extension = System.IO.Path.GetExtension(filePath)
+                    If extension.Equals(".drw", StringComparison.OrdinalIgnoreCase) Then
+                        AddFileIfNotExists(filePath)
+                        addedFilesCount += 1
+                    End If
+                Next
+
+                ' Add folders only if they weren't redundant with dropped files
                 For Each folderPath In droppedFolders
+                    ' Check if any dropped file is inside this folder to avoid duplicate adding
+                    Dim hasFileInside = droppedFiles.Any(Function(f) f.StartsWith(folderPath.TrimEnd(Path.DirectorySeparatorChar) & Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                    If hasFileInside Then
+                        Log &= $"Skipped folder {folderPath} because its file(s) were already added.{Environment.NewLine}"
+                        Continue For
+                    End If
+
                     Dim drwFiles = Directory.GetFiles(folderPath, "*.drw", SearchOption.TopDirectoryOnly)
                     For Each file In drwFiles
                         AddFileIfNotExists(file)
@@ -529,6 +542,9 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
                 Log &= $"Error adding dropped files: {ex.Message}{Environment.NewLine}"
             End Try
         End Sub
+
+
+
         ' Adds a file to the _files collection if it does not already exist.
         ''' <param name="filePath">Full file path</param>
         Private Sub AddFileIfNotExists(filePath As String)
