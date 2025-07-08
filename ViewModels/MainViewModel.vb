@@ -463,13 +463,12 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
                 OnPropertyChanged(NameOf(Files))
             Next
             Log &= "Publishing complete." & Environment.NewLine
-            ' After exporting, generate report if enabled
 
-
-            MessageBox.Show($"PDF export completed successfully for {filesToExport.Count} files!",
-                "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information)
-
-
+            ' ✅ Export report
+            ExportReportToCsv(selectedFiles)
+            MessageBox.Show($"PDF export completed successfully for {filesToExport.Count} files!" & vbCrLf &
+                            "A detailed report has been saved in the output folder.",
+                            "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information)
         End Sub
 
         ' Open settings
@@ -498,7 +497,7 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
 
                 ' Separate files and folders first
                 For Each path As String In paths
-                    Log &= $"Dropped Items From : {path}{Environment.NewLine}"
+                    Log &= $"Dropped Files From : {path}{Environment.NewLine}"
 
                     If Directory.Exists(path) Then
                         droppedFolders.Add(path)
@@ -554,6 +553,31 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
                 AddHandler fileModel.PropertyChanged, AddressOf FileItem_PropertyChanged
                 _files.Add(fileModel)
             End If
+        End Sub
+        Private Sub ExportReportToCsv(files As List(Of FileItemModel))
+            Try
+                Dim reportPath = System.IO.Path.Combine(OutputPath, $"PublishReport_{DateTime.Now:yyyyMMdd_HHmmss}.csv")
+
+                Using writer As New StreamWriter(reportPath, False)
+                    writer.WriteLine("File Name,Custom PDF Name,Status,Created Date,Modified Date,File Size")
+
+                    For Each file In files
+                        Dim line As String = String.Join(",",
+                    """" & file.FileName & """",
+                    """" & file.CustomPdfName & """",
+                    """" & file.Status & """",
+                    file.CreatedDate,
+                    file.ModifiedDate,
+                    file.FileSize)
+                        writer.WriteLine(line)
+                    Next
+                End Using
+
+                Log &= $"Export report saved to: {reportPath}{Environment.NewLine}"
+
+            Catch ex As Exception
+                Log &= $"Error generating export report: {ex.Message}{Environment.NewLine}"
+            End Try
         End Sub
 
     End Class

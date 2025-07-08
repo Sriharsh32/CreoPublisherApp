@@ -46,11 +46,27 @@
         </Grid.RowDefinitions>
 
         <!-- Top bar -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+        <DockPanel Grid.Row="0" Margin="0,0,0,10" HorizontalAlignment="Right">
+            <!-- Help Button -->
             <Button Width="35" Height="35"
-                    HorizontalAlignment="Right"
-                    Command="{Binding OpenSettingsWindowCommand}"
-                    DockPanel.Dock="Right">
+            Click="ShowDragDropInstructions"
+            DockPanel.Dock="Right"
+            Margin="0,0,8,0">
+                <Button.ToolTip>
+                    <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
+                        How to drag and drop files into the application.
+                    </ToolTip>
+                </Button.ToolTip>
+                <TextBlock Text="ⓘ" FontSize="30"
+           FontFamily="Segoe UI Emoji"
+           VerticalAlignment="Center"
+           HorizontalAlignment="Center"/>
+            </Button>
+
+            <!-- Settings Button -->
+            <Button Width="35" Height="35"
+            Command="{Binding OpenSettingsWindowCommand}"
+            DockPanel.Dock="Right">
                 <Button.ToolTip>
                     <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
                         Open export and application settings.
@@ -192,14 +208,6 @@
                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
-
-        <!-- Drag & Drop Instruction Button -->
-        <Button Grid.Row="6" Content="Drag and Drop Files or Folders"
-                Width="250" Height="40"
-                Background="SteelBlue" Foreground="White"
-                HorizontalAlignment="Center" Margin="0,10,0,8"
-                Click="ShowDragDropInstructions"/>
-
         <!-- Buttons -->
         <StackPanel Orientation="Horizontal" Grid.Row="7" HorizontalAlignment="Right" Margin="0,10,0,8">
             <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="100" Height="30" Background="DarkSlateGray" Foreground="White" Margin="0,0,6,0"/>
