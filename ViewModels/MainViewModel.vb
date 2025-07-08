@@ -455,7 +455,6 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
             _proeCommonFuncs.setConfigOption("display_planes", "no")
             _proeCommonFuncs.setConfigOption("display_axes", "no")
             _proeCommonFuncs.setConfigOption("display_coord_sys", "no")
-            '_proeCommonFuncs.ExportAllDrawingsAsPDF(selectedFiles, OutputPath)
             _proeCommonFuncs.ExportAllDrawingsAsPDF(filesToExport, OutputPath)
             _openProe.KillCreO()
             'After exporting all the selected files and publishing.
@@ -464,7 +463,7 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
             Next
             Log &= "Publishing complete." & Environment.NewLine
 
-            ' ✅ Export report
+            '  Export report
             ExportReportToCsv(selectedFiles)
             MessageBox.Show($"PDF export completed successfully for {filesToExport.Count} files!" & vbCrLf &
                             "A detailed report has been saved in the output folder.",
@@ -554,6 +553,7 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
                 _files.Add(fileModel)
             End If
         End Sub
+        'Export to CSV File Method
         Private Sub ExportReportToCsv(files As List(Of FileItemModel))
             Try
                 Dim reportPath = System.IO.Path.Combine(OutputPath, $"PublishReport_{DateTime.Now:yyyyMMdd_HHmmss}.csv")
