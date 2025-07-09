@@ -77,23 +77,19 @@ Namespace CreoPublisherApp.ViewModels
                     _inputPath = cleanedValue
                     OnPropertyChanged()
 
-                    If String.IsNullOrEmpty(_inputPath) Then
-                        Return
-                    End If
+                    If String.IsNullOrEmpty(_inputPath) Then Return
+                    If _inputPath.Equals("Multiple files selected", StringComparison.OrdinalIgnoreCase) Then Return
+                    If File.Exists(_inputPath) AndAlso Path.GetExtension(_inputPath).Equals(".drw", StringComparison.OrdinalIgnoreCase) Then Return
 
-                    ' If InputPath is set to "Multiple files selected", do not load folder
-                    If _inputPath.Equals("Multiple files selected", StringComparison.OrdinalIgnoreCase) Then
-                        Return
-                    End If
-
-                    ' If InputPath is a single file → do nothing (we already add file in AddDroppedFiles)
-                    If File.Exists(_inputPath) AndAlso Path.GetExtension(_inputPath).Equals(".drw", StringComparison.OrdinalIgnoreCase) Then
-                        Return
-                    End If
-
-                    ' If InputPath is a folder → load all .drw files from it
                     If Directory.Exists(_inputPath) Then
                         LoadFilesFromFolder(_inputPath)
+
+                        If IsCliMode Then
+                            For Each f In _files
+                                f.IsSelected = True
+                            Next
+                            UpdateFilesCountText()
+                        End If
                     Else
                         Log &= $"Warning: Input folder or file '{_inputPath}' does not exist or is invalid.{Environment.NewLine}"
                         _files.Clear()
@@ -103,7 +99,6 @@ Namespace CreoPublisherApp.ViewModels
                 End If
             End Set
         End Property
-
 
         Public Property OutputPath As String
             Get
@@ -116,6 +111,7 @@ Namespace CreoPublisherApp.ViewModels
                 End If
             End Set
         End Property
+
         Public Property SearchText As String
             Get
                 Return _searchText
@@ -214,6 +210,11 @@ Namespace CreoPublisherApp.ViewModels
                 End If
             End Set
         End Property
+        Public ReadOnly Property IsCliMode As Boolean
+            Get
+                Return Application.Current Is Nothing OrElse Application.Current.MainWindow Is Nothing
+            End Get
+        End Property
 
         ' Commands
         Public Property BrowseFolderCommand As ICommand
@@ -271,8 +272,6 @@ Namespace CreoPublisherApp.ViewModels
                 RefreshFilter()
             End If
         End Sub
-
-
 
         Private Sub BrowseOutputFolder()
             Dim dialog As New VistaFolderBrowserDialog()
@@ -355,7 +354,7 @@ Namespace CreoPublisherApp.ViewModels
             OnPropertyChanged(NameOf(Files))
         End Sub
 
-        Private Sub PublishFiles()
+        Public Sub PublishFiles()
             Dim selectedFiles = _files.Where(Function(f) f.IsSelected).ToList()
             If selectedFiles.Count = 0 Then
                 MessageBox.Show("No Files selected for publishing")
@@ -468,6 +467,17 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
             MessageBox.Show($"PDF export completed successfully for {filesToExport.Count} files!" & vbCrLf &
                             "A detailed report has been saved in the output folder.",
                             "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information)
+
+            If IsCliMode Then
+                Try
+                    Dim logFolder = Path.Combine(OutputPath, "Logs")
+                    Directory.CreateDirectory(logFolder)
+                    Dim logFile = Path.Combine(logFolder, $"CLIPublishLog_{DateTime.Now:yyyyMMdd_HHmmss}.txt")
+                    File.WriteAllText(logFile, Log)
+                Catch ex As Exception
+                    ' Ignore logging errors in CLI
+                End Try
+            End If
         End Sub
 
         ' Open settings
@@ -559,7 +569,9 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
                 Dim reportPath = System.IO.Path.Combine(OutputPath, $"PublishReport_{DateTime.Now:yyyyMMdd_HHmmss}.csv")
 
                 Using writer As New StreamWriter(reportPath, False)
-                    writer.WriteLine("File Name,Custom PDF Name,Status,Created Date,Modified Date,File Size")
+                    writer.WriteLine("File Name,Custom PDF Name,Status,Created Date,Modified Date,File Size,PDF Generated Timestamp")
+
+                    Dim generatedTimestamp As String = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
 
                     For Each file In files
                         Dim line As String = String.Join(",",
@@ -568,18 +580,16 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
                     """" & file.Status & """",
                     file.CreatedDate,
                     file.ModifiedDate,
-                    file.FileSize)
+                    file.FileSize,
+                    """" & generatedTimestamp & """")
                         writer.WriteLine(line)
                     Next
                 End Using
-
                 Log &= $"Export report saved to: {reportPath}{Environment.NewLine}"
-
             Catch ex As Exception
                 Log &= $"Error generating export report: {ex.Message}{Environment.NewLine}"
             End Try
         End Sub
-
     End Class
 
 End Namespace

@@ -24,13 +24,23 @@ Public Class OpenProeObjectClass
     End Function
 
     Public Sub KillCreO()
+        Dim proc As System.Diagnostics.Process
         Try
-            If _asyncConn IsNot Nothing Then
-                _asyncConn.Disconnect(1)
-                _asyncConn = Nothing
-            End If
+            For Each proc In System.Diagnostics.Process.GetProcessesByName("xtop")
+
+                If proc.HasExited = False Then
+                    If proc.Responding = False Then
+                        proc.Kill()
+                    End If
+                    proc.Kill()
+                End If
+            Next
+            For Each proc In System.Diagnostics.Process.GetProcessesByName("nmsd")
+                If proc.HasExited = False Then
+                    proc.Kill()
+                End If
+            Next
         Catch ex As Exception
-            MessageBox.Show("Shutdown Error: " & ex.Message)
         End Try
     End Sub
 End Class

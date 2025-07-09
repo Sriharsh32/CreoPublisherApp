@@ -7,6 +7,8 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "CreoPublisherApp", "CreoPub
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup1", "..\Setup1\Setup1.vdproj", "{82A23954-A0D5-E4C3-5500-861FACC02964}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup2", "..\Setup2\Setup2.vdproj", "{1A50F69A-E55C-160D-6004-8021BDCB8EAA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{82A23954-A0D5-E4C3-5500-861FACC02964}.Debug|x86.ActiveCfg = Debug
 		{82A23954-A0D5-E4C3-5500-861FACC02964}.Release|Any CPU.ActiveCfg = Release
 		{82A23954-A0D5-E4C3-5500-861FACC02964}.Release|x86.ActiveCfg = Release
+		{1A50F69A-E55C-160D-6004-8021BDCB8EAA}.Debug|Any CPU.ActiveCfg = Debug
+		{1A50F69A-E55C-160D-6004-8021BDCB8EAA}.Debug|x86.ActiveCfg = Debug
+		{1A50F69A-E55C-160D-6004-8021BDCB8EAA}.Release|Any CPU.ActiveCfg = Release
+		{1A50F69A-E55C-160D-6004-8021BDCB8EAA}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
