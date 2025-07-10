@@ -29,6 +29,13 @@ Namespace CreoPublisherApp.ViewModels
         Private _isAllSelected As Boolean = False
         Private _selectDeselectButtonText As String = "Select All"
         Private _searchText As String = String.Empty
+
+        ' Pagination Variables Declaration 
+        Private _currentPage As Integer = 1
+        Private _pageSize As Integer = 10
+        Private _filteredFiles As ObservableCollection(Of FileItemModel)
+        Private _pagedFiles As ObservableCollection(Of FileItemModel)
+
         ' Creo automation classes
         Private _openProe As New OpenProeObjectClass()
         Private _proeCommonFuncs As New ProECommonFunctionalites()
@@ -215,6 +222,49 @@ Namespace CreoPublisherApp.ViewModels
                 Return Application.Current Is Nothing OrElse Application.Current.MainWindow Is Nothing
             End Get
         End Property
+        ' Pagination Properties 
+        Public Property CurrentPage As Integer
+            Get
+                Return _currentPage
+            End Get
+            Set(value As Integer)
+                If _currentPage <> value Then
+                    _currentPage = value
+                    OnPropertyChanged()
+                    UpdatePagedFiles()
+                End If
+            End Set
+        End Property
+
+        Public Property PageSize As Integer
+            Get
+                Return _pageSize
+            End Get
+            Set(value As Integer)
+                _pageSize = value
+                OnPropertyChanged()
+                UpdatePagedFiles()
+            End Set
+        End Property
+
+        Public ReadOnly Property TotalPages As Integer
+            Get
+                If _filteredFiles IsNot Nothing AndAlso _filteredFiles.Count > 0 Then
+                    Return Math.Ceiling(_filteredFiles.Count / _pageSize)
+                End If
+                Return 1
+            End Get
+        End Property
+
+        Public Property PagedFiles As ObservableCollection(Of FileItemModel)
+            Get
+                Return _pagedFiles
+            End Get
+            Set(value As ObservableCollection(Of FileItemModel))
+                _pagedFiles = value
+                OnPropertyChanged()
+            End Set
+        End Property
 
         ' Commands
         Public Property BrowseFolderCommand As ICommand
@@ -226,6 +276,19 @@ Namespace CreoPublisherApp.ViewModels
         Public Property PublishCommand As ICommand
         Public Property ToggleSelectCommand As ICommand
         Public Property ClearFiltersCommand As ICommand
+        ' Navigation Commands
+        Public ReadOnly Property NextPageCommand As ICommand = New RelayCommand(Sub()
+                                                                                    If CurrentPage < TotalPages Then
+                                                                                        CurrentPage += 1
+                                                                                    End If
+                                                                                End Sub)
+
+        Public ReadOnly Property PreviousPageCommand As ICommand = New RelayCommand(Sub()
+                                                                                        If CurrentPage > 1 Then
+                                                                                            CurrentPage -= 1
+                                                                                        End If
+                                                                                    End Sub)
+
 
         ' Filtering logic
         Private Function FilterFiles(obj As Object) As Boolean
@@ -241,9 +304,20 @@ Namespace CreoPublisherApp.ViewModels
             Return matchesSearch AndAlso matchesCreatedStart AndAlso matchesCreatedEnd AndAlso matchesModifiedStart AndAlso matchesModifiedEnd
         End Function
 
+        'Private Sub RefreshFilter()
+        '    _filteredFilesView.Refresh()
+        'End Sub
         Private Sub RefreshFilter()
             _filteredFilesView.Refresh()
+
+            ' Update _filteredFiles list used for pagination
+            Dim filteredList = _files.Where(Function(f) FilterFiles(f)).ToList()
+            _filteredFiles = New ObservableCollection(Of FileItemModel)(filteredList)
+
+            CurrentPage = 1
+            UpdatePagedFiles()
         End Sub
+
 
         ' File loading and updating
         Private Sub BrowseFolder()
@@ -253,6 +327,7 @@ Namespace CreoPublisherApp.ViewModels
                 LoadFilesFromFolder(InputPath)
             End If
         End Sub
+
 
         Private Sub BrowseFiles()
             Dim dlg As New OpenFileDialog()
@@ -353,7 +428,7 @@ Namespace CreoPublisherApp.ViewModels
             UpdateFilesCountText()
             OnPropertyChanged(NameOf(Files))
         End Sub
-
+        ' Publish files method
         Public Sub PublishFiles()
             Dim selectedFiles = _files.Where(Function(f) f.IsSelected).ToList()
             If selectedFiles.Count = 0 Then
@@ -480,6 +555,7 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
             End If
         End Sub
 
+
         ' Open settings
         Private Sub OpenSettingsWindow()
             Dim settingsWindow As New SettingsWindow()
@@ -590,6 +666,19 @@ String.Join(vbCrLf, conflictFiles), "Skipped Files", MessageBoxButton.OK, Messag
                 Log &= $"Error generating export report: {ex.Message}{Environment.NewLine}"
             End Try
         End Sub
+        'Update File Method for Pagination 
+        Private Sub UpdatePagedFiles()
+            If _filteredFiles Is Nothing Then Return
+
+            Dim skip = (_currentPage - 1) * _pageSize
+            Dim pageItems = _filteredFiles.Skip(skip).Take(_pageSize).ToList()
+            PagedFiles = New ObservableCollection(Of FileItemModel)(pageItems)
+
+            OnPropertyChanged(NameOf(CurrentPage))
+            OnPropertyChanged(NameOf(TotalPages))
+        End Sub
+
+
     End Class
 
 End Namespace

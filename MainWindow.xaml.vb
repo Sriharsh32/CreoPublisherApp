@@ -11,7 +11,6 @@ Namespace CreoPublisherApp
         Inherits Window
 
         Private ReadOnly viewModel As MainViewModel
-
         ' Keep a reference to the fadeOut Completed handler for removal
         Private fadeOutCompletedHandler As EventHandler
 
@@ -99,6 +98,9 @@ Namespace CreoPublisherApp
                     "How to Drag and Drop", MessageBoxButton.OK, MessageBoxImage.Information)
         End Sub
 
-    End Class
+        Private Sub Button_Click(sender As Object, e As RoutedEventArgs)
 
+        End Sub
+        Private isDarkTheme As Boolean = False
+    End Class
 End Namespace

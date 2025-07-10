@@ -8,11 +8,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\arrow-left.png" />
+    <None Remove="Resources\arrow-right.png" />
     <None Remove="Resources\background.jpeg" />
+    <None Remove="Resources\file-add.png" />
+    <None Remove="Resources\folder-open.png" />
+    <None Remove="Resources\folder-save.png" />
     <None Remove="Resources\gear.png" />
+    <None Remove="Resources\help.png" />
+    <None Remove="Resources\upload.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\arrow-left.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\arrow-right.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\background.jpeg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -59,7 +72,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\file-add.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\folder-open.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\folder-save.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\gear.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\help.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\upload.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

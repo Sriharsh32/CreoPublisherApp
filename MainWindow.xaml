@@ -4,29 +4,79 @@
         xmlns:local="clr-namespace:CreoPublisherApp"
         Title="Creo PDF Batch Publisher" Height="720" Width="960"
         WindowStartupLocation="CenterScreen"
-        MinWidth="800" MinHeight="600">
-
+        MinWidth="800" MinHeight="600"
+      
+>
     <Window.Resources>
-        <!-- Fade In Animation -->
+        
+
+        <!-- Rounded Button Style -->
+        <Style x:Key="RoundedButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="SteelBlue"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <!-- smaller padding -->
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="MinWidth" Value="130"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+           
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                        CornerRadius="18"
+                        BorderBrush="Transparent"
+                        BorderThickness="1"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      RecognizesAccessKey="True"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <!-- DataGrid Styling -->
+        <Style TargetType="DataGrid">
+            <Setter Property="AlternatingRowBackground" Value="#F7F7F7"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="RowHeight" Value="34"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#E5E5E5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="Gray"/>
+            <Setter Property="Height" Value="35"/>
+        </Style>
+
+        <!-- Animations -->
         <Storyboard x:Key="FadeInOverlay">
             <DoubleAnimation Storyboard.TargetName="DragDropOverlay"
                              Storyboard.TargetProperty="Opacity"
                              From="0" To="1" Duration="0:0:0.3" />
         </Storyboard>
 
-        <!-- Fade Out Animation -->
         <Storyboard x:Key="FadeOutOverlay">
             <DoubleAnimation Storyboard.TargetName="DragDropOverlay"
                              Storyboard.TargetProperty="Opacity"
                              From="1" To="0" Duration="0:0:0.3" />
         </Storyboard>
 
-        <!-- Pulse Animation -->
         <Storyboard x:Key="PulseOverlay" RepeatBehavior="Forever" AutoReverse="True">
             <DoubleAnimation Storyboard.TargetName="DragDropOverlay"
                              Storyboard.TargetProperty="Opacity"
                              From="0.7" To="1" Duration="0:0:1" />
         </Storyboard>
+ 
     </Window.Resources>
 
     <Grid Margin="15" AllowDrop="True"
@@ -38,7 +88,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="2"/>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="120"/>
@@ -48,53 +98,36 @@
         <!-- Top bar -->
         <DockPanel Grid.Row="0" Margin="0,0,0,10" HorizontalAlignment="Right">
             <!-- Help Button -->
-            <Button Width="35" Height="35"
-            Click="ShowDragDropInstructions"
-            DockPanel.Dock="Right"
-            Margin="0,0,8,0">
-                <Button.ToolTip>
-                    <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
-                        How to drag and drop files into the application.
-                    </ToolTip>
-                </Button.ToolTip>
-                <TextBlock Text="ⓘ" FontSize="30"
-           FontFamily="Segoe UI Emoji"
-           VerticalAlignment="Center"
-           HorizontalAlignment="Center"/>
+            <Button Width="35" ToolTip=" How to drag and drop files into the application." Height="35" Click="ShowDragDropInstructions" DockPanel.Dock="Right" Margin="0,0,8,0">
+                <Image Source="pack://application:,,,/Resources/help.png" Stretch="UniformToFill"/>
             </Button>
 
             <!-- Settings Button -->
-            <Button Width="35" Height="35"
-            Command="{Binding OpenSettingsWindowCommand}"
-            DockPanel.Dock="Right">
-                <Button.ToolTip>
-                    <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
-                        Open export and application settings.
-                    </ToolTip>
-                </Button.ToolTip>
-                <Image Source="pack://application:,,,/Resources/gear.png" Stretch="Uniform"/>
+            <Button  Width="35" Height="35" ToolTip="Open export and application settings." Command="{Binding OpenSettingsWindowCommand}" DockPanel.Dock="Right">
+                <Image Source="pack://application:,,,/Resources/gear.png"  Stretch="UniformToFill"/>
             </Button>
-        </DockPanel>
+           
 
+        </DockPanel>
         <!-- Input Folder -->
         <Grid Grid.Row="1" Margin="0,0,0,8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Button Content="Browse Input Folder" Command="{Binding BrowseFolderCommand}"
-            Width="130" Margin="0,0,10,0"
-            Background="SteelBlue" Foreground="White"
-            Grid.Column="0">
-                <Button.ToolTip>
-                    <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
-                        Select a folder containing Creo drawing files (.drw) for batch publishing.
-                    </ToolTip>
-                </Button.ToolTip>
+
+            <Button Grid.Column="0" Style="{StaticResource RoundedButtonStyle}"
+            Command="{Binding BrowseFolderCommand}"
+            Width="auto" Margin="0,0,10,0" ToolTip="Select a folder containing Creo drawing files (.drw) for batch publishing.">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Image Source="pack://application:,,,/Resources/folder-open.png" Width="16" Height="16" Margin="0,0,6,0"/>
+                    <TextBlock Text="Browse Input Folder" VerticalAlignment="Center" Foreground="White"/>
+                </StackPanel>
             </Button>
-            <TextBox Text="{Binding InputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+
+            <TextBox Grid.Column="1" Text="{Binding InputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
              Height="25" VerticalContentAlignment="Center"
-             Grid.Column="1" HorizontalAlignment="Stretch"
+             HorizontalAlignment="Stretch" 
              ToolTip="You can also paste or type the folder path here"/>
         </Grid>
 
@@ -104,18 +137,18 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Button Content="Browse Files" Command="{Binding BrowseFilesCommand}"
-                    Width="130" Margin="0,0,10,0"
-                    Background="SteelBlue" Foreground="White"
-                    Grid.Column="0">
-                <Button.ToolTip>
-                    <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
-                        Select one or more Creo drawing files (.drw) for batch publishing.
-                    </ToolTip>
-                </Button.ToolTip>
+
+            <Button Grid.Column="0" Style="{StaticResource RoundedButtonStyle}"
+            Command="{Binding BrowseFilesCommand}"
+            Width="auto" Margin="0,0,12,0" ToolTip="Select one or more Creo drawing files (.drw) for batch publishing.">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Image Source="pack://application:,,,/Resources/file-add.png" Width="16" Height="16" Margin="0,0,6,0"/>
+                    <TextBlock Text="Browse Input Files   " VerticalAlignment="Center" Foreground="White"/>
+                </StackPanel>
             </Button>
-            <TextBox Text="{Binding FilesCountText, Mode=OneWay}" IsReadOnly="True" Height="25" VerticalContentAlignment="Center"
-                     Grid.Column="1" HorizontalAlignment="Stretch"/>
+
+            <TextBox Grid.Column="1" Text="{Binding FilesCountText, Mode=OneWay}" IsReadOnly="True" Height="25" VerticalContentAlignment="Center"
+             HorizontalAlignment="Stretch"/>
         </Grid>
 
         <!-- Output Folder -->
@@ -124,23 +157,25 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Button Content="Select Output Folder" Command="{Binding BrowseOutputFolderCommand}"
-            Width="130" Margin="0,0,10,0"
-            Background="SteelBlue" Foreground="White"
-            Grid.Column="0">
-                <Button.ToolTip>
-                    <ToolTip Background="#333" Foreground="White" Padding="8" FontSize="13" BorderBrush="Gray" BorderThickness="1" HasDropShadow="True">
-                        Choose the folder where the exported PDF files will be saved.
-                    </ToolTip>
-                </Button.ToolTip>
+
+            <Button Grid.Column="0" Style="{StaticResource RoundedButtonStyle}"
+            Command="{Binding BrowseOutputFolderCommand}"
+            Width="auto" Margin="0,0,10,0" ToolTip="Choose the folder where the exported PDF files will be saved.">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Image Source="pack://application:,,,/Resources/folder-save.png" Width="16" Height="16" Margin="0,0,6,0"/>
+                    <TextBlock Text="Select Output Folder" VerticalAlignment="Center" Foreground="White"/>
+                </StackPanel>
             </Button>
-            <TextBox Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+
+            <TextBox Grid.Column="1" Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
              Height="25" VerticalContentAlignment="Center"
-             Grid.Column="1" HorizontalAlignment="Stretch"
+             HorizontalAlignment="Stretch"
              ToolTip="You can also paste or type the output folder path here"/>
         </Grid>
 
-        <!-- Responsive Filters -->
+
+
+        <!-- Filters -->
         <Grid Grid.Row="4" Margin="0,0,0,10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -155,49 +190,77 @@
 
             <!-- Created Date From -->
             <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,0">
-                <TextBlock Text="Created Date From"/>
-                <DatePicker SelectedDate="{Binding CreatedDateStart}" />
+                <TextBlock>
+            <Run FontFamily="Segoe MDL2 Assets" Text="&#xE787;" Foreground="DarkSlateGray" FontSize="14"/>
+            <Run Text=" Created Date From" />
+                </TextBlock>
+                <Border BorderBrush="#CCC" BorderThickness="1" CornerRadius="4" Padding="2" Margin="0,4,0,0">
+                    <DatePicker SelectedDate="{Binding CreatedDateStart}" Background="White"/>
+                </Border>
             </StackPanel>
 
             <!-- Created Date To -->
             <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
-                <TextBlock Text="To"/>
-                <DatePicker SelectedDate="{Binding CreatedDateEnd}" />
+                <TextBlock>
+            <Run FontFamily="Segoe MDL2 Assets" Text="&#xE787;" Foreground="DarkSlateGray" FontSize="14"/>
+            <Run Text=" To" />
+                </TextBlock>
+                <Border BorderBrush="#CCC" BorderThickness="1" CornerRadius="4" Padding="2" Margin="0,4,0,0">
+                    <DatePicker SelectedDate="{Binding CreatedDateEnd}" Background="White"/>
+                </Border>
             </StackPanel>
 
             <!-- Modified Date From -->
             <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,10,0">
-                <TextBlock Text="Modified Date From"/>
-                <DatePicker SelectedDate="{Binding ModifiedDateStart}" />
+                <TextBlock>
+            <Run FontFamily="Segoe MDL2 Assets" Text="&#xE787;" Foreground="DarkSlateGray" FontSize="14"/>
+            <Run Text=" Modified Date From" />
+                </TextBlock>
+                <Border BorderBrush="#CCC" BorderThickness="1" CornerRadius="4" Padding="2" Margin="0,4,0,0">
+                    <DatePicker SelectedDate="{Binding ModifiedDateStart}" Background="White"/>
+                </Border>
             </StackPanel>
 
             <!-- Modified Date To -->
             <StackPanel Grid.Row="0" Grid.Column="3" Margin="0,0,10,0">
-                <TextBlock Text="To"/>
-                <DatePicker SelectedDate="{Binding ModifiedDateEnd}" />
+                <TextBlock>
+            <Run FontFamily="Segoe MDL2 Assets" Text="&#xE787;" Foreground="DarkSlateGray" FontSize="14"/>
+            <Run Text=" To" />
+                </TextBlock>
+                <Border BorderBrush="#CCC" BorderThickness="1" CornerRadius="4" Padding="2" Margin="0,4,0,0">
+                    <DatePicker SelectedDate="{Binding ModifiedDateEnd}" Background="White"/>
+                </Border>
             </StackPanel>
 
-            <!-- Search & Clear Filter -->
+            <!-- Search and Clear -->
             <Grid Grid.Row="1" Grid.ColumnSpan="4" Margin="0,10,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
+                <!-- Search Box with icon -->
                 <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                    <TextBlock Text="Search File Name"/>
-                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Height="25"/>
+                    <TextBlock>
+                <Run FontFamily="Segoe MDL2 Assets" Text="&#xE721;" Foreground="DarkSlateGray" FontSize="14"/>
+                <Run Text=" Search File Name" />
+                    </TextBlock>
+                    <Border BorderBrush="#CCC" BorderThickness="1" CornerRadius="4" Padding="2" Margin="0,4,0,0">
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Height="25" Background="White"/>
+                    </Border>
                 </StackPanel>
 
-                <Button Grid.Column="1" Content="Clear Filter" Command="{Binding ClearFiltersCommand}" Width="120" Height="30"
-                        VerticalAlignment="Bottom" Background="IndianRed" Foreground="White"/>
+                <!-- Clear Button -->
+                <Button Grid.Column="1" Content="Clear Filter" Command="{Binding ClearFiltersCommand}"
+                Style="{StaticResource RoundedButtonStyle}" Background="IndianRed" Margin="0,20,0,0"/>
             </Grid>
         </Grid>
 
-        <!-- DataGrid -->
-        <DataGrid Grid.Row="5" ItemsSource="{Binding FilteredFiles}" AutoGenerateColumns="False" CanUserAddRows="False"
+
+        <!-- DataGrid for Selection and File Grid -->
+        <DataGrid Grid.Row="5" ItemsSource="{Binding PagedFiles}" AutoGenerateColumns="False" CanUserAddRows="False"
                   Margin="0,0,0,10" IsReadOnly="False" SelectionChanged="DataGrid_SelectionChanged"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
             <DataGrid.Columns>
                 <DataGridCheckBoxColumn Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Header="Select" Width="60" />
                 <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="*"/>
@@ -208,19 +271,76 @@
                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
-        <!-- Buttons -->
-        <StackPanel Orientation="Horizontal" Grid.Row="7" HorizontalAlignment="Right" Margin="0,10,0,8">
-            <Button Content="Select All" Command="{Binding SelectAllCommand}" Width="100" Height="30" Background="DarkSlateGray" Foreground="White" Margin="0,0,6,0"/>
-            <Button Content="Deselect All" Command="{Binding DeselectAllCommand}" Width="100" Height="30" Background="DarkSlateGray" Foreground="White" Margin="0,0,6,0"/>
-            <Button Content="Invert Selection" Command="{Binding InvertSelectionCommand}" Width="120" Height="30" Background="DarkSlateGray" Foreground="White" Margin="0,0,6,0"/>
-            <Button Content="Publish" Command="{Binding PublishCommand}" Width="100" Height="30" Background="ForestGreen" Foreground="White"/>
-        </StackPanel>
+        <!-- Stack which navigates previous and next -->
+        <Grid Grid.Row="6" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Page Size Dropdown -->
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,10,0">
+                <TextBlock Text="Items per page:" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="14" FontWeight="SemiBold"/>
+                <ComboBox Width="80" SelectedValue="{Binding PageSize, Mode=TwoWay}" SelectedValuePath="Content" FontSize="13">
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="20"/>
+                    <ComboBoxItem Content="50"/>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- Navigation Buttons -->
+            <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
+                <Button Command="{Binding PreviousPageCommand}" Style="{StaticResource RoundedButtonStyle}" Width="120">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Image Source="pack://application:,,,/Resources/arrow-left.png" Width="14" Height="14" Margin="0,0,6,0"/>
+                        <TextBlock Text="Previous" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <TextBlock Text="{Binding CurrentPage}" FontWeight="Bold" VerticalAlignment="Center" FontSize="14" Margin="10,0"/>
+                <TextBlock Text=" / " VerticalAlignment="Center" FontSize="14"/>
+                <TextBlock Text="{Binding TotalPages}" VerticalAlignment="Center" FontSize="14" Margin="10,0"/>
+
+                <Button Command="{Binding NextPageCommand}" Style="{StaticResource RoundedButtonStyle}" Width="100">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Text="Next" VerticalAlignment="Center"/>
+                        <Image Source="pack://application:,,,/Resources/arrow-right.png" Width="14" Height="14" Margin="6,0,0,0"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Action Buttons -->
+        <Border Grid.Row="7" Margin="0,10,0,8" Padding="10"
+        BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="8" Background="#F8F8F8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" >
+                <Button Content="Select All" Command="{Binding SelectAllCommand}" 
+                ToolTip="Select all the files." Style="{StaticResource RoundedButtonStyle}" 
+                Background="#444" Foreground="White"/>
+
+                <Button Content="Deselect All" Command="{Binding DeselectAllCommand}" 
+                ToolTip="Deselect all the selected files." Style="{StaticResource RoundedButtonStyle}" 
+                Background="#444" Foreground="White"/>
+
+                <Button Content="Invert Selection" Command="{Binding InvertSelectionCommand}" 
+                ToolTip="Invert the files." Style="{StaticResource RoundedButtonStyle}" 
+                Background="#444" Foreground="White"/>
+
+                <Button Command="{Binding PublishCommand}" ToolTip="Publish the files." 
+                Style="{StaticResource RoundedButtonStyle}" Background="ForestGreen" Foreground="White">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="pack://application:,,,/Resources/upload.png" Width="16" Height="16" Margin="0,0,6,0"/>
+                        <TextBlock Text="Publish"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
 
         <!-- Log -->
         <TextBox Grid.Row="8" Text="{Binding Log}" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
                  HorizontalScrollBarVisibility="Auto" TextWrapping="Wrap" FontFamily="Consolas" FontSize="12"/>
 
-        <!-- Drag & Drop Overlay TextBlock -->
+        <!-- Drag & Drop Overlay -->
         <TextBlock x:Name="DragDropOverlay"
                    Text="Drop files or folders here"
                    FontSize="36" FontWeight="Bold"
