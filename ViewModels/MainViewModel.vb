@@ -276,6 +276,8 @@ Namespace CreoPublisherApp.ViewModels
         Public Property PublishCommand As ICommand
         Public Property ToggleSelectCommand As ICommand
         Public Property ClearFiltersCommand As ICommand
+
+
         ' Navigation Commands
         Public ReadOnly Property NextPageCommand As ICommand = New RelayCommand(Sub()
                                                                                     If CurrentPage < TotalPages Then
@@ -288,6 +290,11 @@ Namespace CreoPublisherApp.ViewModels
                                                                                             CurrentPage -= 1
                                                                                         End If
                                                                                     End Sub)
+        Public Property ResetPageCommand As ICommand = New RelayCommand(Sub()
+                                                                            CurrentPage = 1
+                                                                            UpdatePagedFiles()
+                                                                        End Sub)
+
 
 
         ' Filtering logic

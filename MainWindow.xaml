@@ -307,6 +307,9 @@
                         <Image Source="pack://application:,,,/Resources/arrow-right.png" Width="14" Height="14" Margin="6,0,0,0"/>
                     </StackPanel>
                 </Button>
+                <Button Content="Reset to Page 1" Command="{Binding ResetPageCommand}" 
+            Style="{StaticResource RoundedButtonStyle}" Background="#444" Margin="15,0,0,0"
+            ToolTip="Reset the file list to start from Page 1"/>
             </StackPanel>
         </Grid>
 
